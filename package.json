@@ -1,0 +1,32 @@
+{
+  "name": "auth0-ext-compilers",
+  "author": {
+    "name": "Tomasz Janczuk <tomasz@janczuk.org>",
+    "url": "http://tomasz.janczuk.org",
+    "twitter": "tjanczuk"
+  },
+  "version": "1.0.0",
+  "description": "Webtask compilers for Auth0 platform extensibility points",
+  "engines": {
+    "node": ">= 4.3"
+  },
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "https://github.com/auth0/auth0-ext-compilers/LICENSE"
+    }
+  ],
+  "dependencies": {
+  },
+  "homepage": "http://github.com/auth0/auth0-ext-compilers",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:auth0/auth0-ext-compilers.git"
+  },
+  "bugs": {
+    "url": "http://github.com/auth0/auth0-ext-compilers/issues"
+  },
+  "devDependencies": {
+    "mocha": "^2.4.5"
+  }
+}
