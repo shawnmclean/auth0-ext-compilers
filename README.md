@@ -74,14 +74,14 @@ The *credentials-exchange* extensibility point allows custom code to modify the 
 
 ```json
 {
-  "audience": string
+  "audience": "string",
   "client": {
-    "name": string,
-    "id": string,
-    "metadata": object,
-    "tenant": string
+    "name": "string",
+    "id": "string",
+    "metadata": "object",
+    "tenant": "string"
   },
-  "scope": array of strings
+  "scope": "array of strings"
 }
 ```
 
@@ -89,7 +89,7 @@ The *credentials-exchange* extensibility point allows custom code to modify the 
 
 ```json
 {
-  "scope": array of strings,
+  "scope": "array of strings"
   // other properties with namespaced property names
 }
 ```
