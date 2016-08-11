@@ -72,7 +72,7 @@ The *credentials-exchange* extensibility point allows custom code to modify the 
 
 #### Request body
 
-```json
+```javascript
 {
   "audience": "string",
   "client": {
@@ -87,7 +87,7 @@ The *credentials-exchange* extensibility point allows custom code to modify the 
 
 #### Response body
 
-```json
+```javascript
 {
   "scope": "array of strings"
   // other properties with namespaced property names
