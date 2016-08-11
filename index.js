@@ -11,7 +11,10 @@ function authorize_and_process_body(options, cb) {
 }
 
 function is_authorized(ctx, cb) {
-    if (ctx.secrets && ctx.secrets['auth0-extension-secret'] && (!ctx.query || ctx.secrets['auth0-extension-secret'] !== ctx.query['auth0-extension-secret'])) {
+    if (ctx.secrets && ctx.secrets['auth0-extension-secret']) {
+        // Authorization is required, enforce
+        var match = (ctx.headers['authorization'] || '').trim().match(/^bearer (.+)$/i);
+        if (match && match[1] === ctx.secrets['auth0-extension-secret']) return true;
         cb(new Error('Not authorized'));
         return false;
     }

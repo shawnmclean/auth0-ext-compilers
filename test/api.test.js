@@ -30,7 +30,8 @@ describe('credentials-exchange', function () {
         }, function (error, func) {
             assert.ifError(error);
             func({
-                body: { foo: 'foo', bar: 'bar' }
+                body: { foo: 'foo', bar: 'bar' },
+                headers: {}
             }, function (error, data) {
                 assert.ifError(error);
                 assert.ok(data);
@@ -54,6 +55,7 @@ describe('credentials-exchange', function () {
                 body: { foo: 'foo', bar: 'bar' },
                 query: { 'auth0-extension-secret': 'foo' },
                 secrets: { 'auth0-extension-secret': 'foo' },
+                headers: { 'authorization': 'Bearer foo' }
             }, function (error, data) {
                 assert.ifError(error);
                 assert.ok(data);
@@ -76,6 +78,7 @@ describe('credentials-exchange', function () {
             func({
                 body: { foo: 'foo', bar: 'bar' },
                 secrets: { 'auth0-extension-secret': 'foo' },
+                headers: {}
             }, function (error, data) {
                 assert.ok(error);
                 assert.equal(data, undefined);
@@ -93,7 +96,7 @@ describe('credentials-exchange', function () {
             func({
                 body: { foo: 'foo', bar: 'bar' },
                 secrets: { 'auth0-extension-secret': 'foo' },
-                query: { 'auth0-extension-secret': 'bar' },
+                headers: { 'authorization': 'Bearer bar' }
             }, function (error, data) {
                 assert.ok(error);
                 assert.equal(data, undefined);
