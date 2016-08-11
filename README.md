@@ -68,23 +68,56 @@ Webtask compilers for Auth0 extension points also enforce the authorization chec
 
 ### The *credentials-exchange* extensibility point
 
-The *credentials-exchange* extensibility point allows custom code to modify the scopes and add custom claims to the tokens issued from the `POST /oauth/token` Auth0 API. The programming model for this extensibility point is as follows: 
+The *credentials-exchange* extensibility point allows custom code to modify the scopes and add custom claims to the tokens issued from the `POST /oauth/token` Auth0 API.
+
+#### Request body
+
+```json
+{
+  "audience": string
+  "client": {
+    "name": string,
+    "id": string,
+    "metadata": object,
+    "tenant": string
+  },
+  "scope": array of strings
+}
+```
+
+#### Response body
+
+```json
+{
+  "scope": array of strings,
+  // other properties with namespaced property names
+}
+```
+
+The `scope` property of the response as well as any other properties with names that: 
+
+* are URLs with `http` or `https` schemes
+* have hostnames other than `auth0.com`, `webtask.io`, `webtask.run`, or subordinate domain names
+
+will be added as claims to the token being issued. All other response properties are ignored. 
+
+#### Programming model
 
 ```
+/**
+@param {object} ctx - represents request body
+@param {string} ctx.audience - token's audience claim
+@param {array}  ctx.scope - array of strings representing the scope claim
+@param {object} ctx.client - information about the client
+@param {string} ctx.client.name - name of client
+@param {string} ctx.client.id - client id
+@param {string} ctx.client.tenant - Auth0 tenant name
+@param {object} ctx.client.metadata - client metadata
+@param {function} cb - function (error, response)
+*/
 module.exports = function (ctx, cb) {
-  /* ctx looks like this: 
-    {
-      "audience": "fooapi", // IN
-      "client": { // IN
-        "name": "foo Test Client",
-        "id": "dRENwUmyMvZfuC2qqWDojFvwIatLhV69",
-        "metadata": {},
-        "tenant": "login0"
-      },
-      "scope": [] // IN-OUT
-      // any other namespaced claims can be added directly as properties of ctx
-    }
-  */
+  // modify ctx.scope array
+  // add any namespaced claims directly to ctx
   cb(null, ctx); // return error or modified ctx
 };
 ```
