@@ -13,8 +13,8 @@ describe('credentials-exchange', function () {
 
     it('compiles to a function with 2 arguments', function (done) {
         compilers['credentials-exchange']({
-            nodejsCompiler, 
-            script: 'module.exports = function(ctx, cb) { cb(null, ctx); };'
+            nodejsCompiler,
+            script: 'module.exports = function(client, scope, audience, cb) { cb(null, ctx); };'
         }, function (error, func) {
             assert.ifError(error);
             assert.equal(typeof func, 'function');
@@ -25,34 +25,39 @@ describe('credentials-exchange', function () {
 
     it('success getting, modifying, and returning body (unauthenticated)', function (done) {
         compilers['credentials-exchange']({
-            nodejsCompiler, 
-            script: 'module.exports = function(ctx, cb) { ctx.baz = "baz"; cb(null, ctx); };'
+            nodejsCompiler,
+            script: 'module.exports = function(client, scope, audience, cb) { client.baz = "baz"; cb(null, { client, scope, audience }); };'
         }, function (error, func) {
             assert.ifError(error);
             func({
-                body: { foo: 'foo', bar: 'bar' },
+                body: { client: { id: 'client' }, scope: ['scope'], audience: 'audience' },
                 headers: {}
             }, function (error, data) {
                 assert.ifError(error);
                 assert.ok(data);
                 assert.equal(typeof data, 'object');
-                assert.equal(data.foo, 'foo');
-                assert.equal(data.bar, 'bar');
-                assert.equal(data.baz, 'baz');
+                assert.equal(typeof data.client, 'object');
+                assert.equal(data.client.id, 'client');
+                assert.equal(data.client.baz, 'baz');
+                assert.equal(Object.keys(data.client).length, 2);
+                assert.ok(Array.isArray(data.scope));
+                assert.equal(data.scope.length, 1);
+                assert.equal(data.scope[0], 'scope');
+                assert.equal(data.audience, 'audience');
                 assert.equal(Object.keys(data).length, 3);
-                done();                
+                done();
             });
         });
     });
 
     it('success getting, modifying, and returning body (authenticated)', function (done) {
         compilers['credentials-exchange']({
-            nodejsCompiler, 
-            script: 'module.exports = function(ctx, cb) { ctx.baz = "baz"; cb(null, ctx); };'
+            nodejsCompiler,
+            script: 'module.exports = function(client, scope, audience, cb) { client.baz = "baz"; cb(null, { client, scope, audience }); };'
         }, function (error, func) {
             assert.ifError(error);
             func({
-                body: { foo: 'foo', bar: 'bar' },
+                body: { client: { id: 'client' }, scope: ['scope'], audience: 'audience' },
                 query: { 'auth0-extension-secret': 'foo' },
                 secrets: { 'auth0-extension-secret': 'foo' },
                 headers: { 'authorization': 'Bearer foo' }
@@ -60,47 +65,54 @@ describe('credentials-exchange', function () {
                 assert.ifError(error);
                 assert.ok(data);
                 assert.equal(typeof data, 'object');
-                assert.equal(data.foo, 'foo');
-                assert.equal(data.bar, 'bar');
-                assert.equal(data.baz, 'baz');
+                assert.equal(typeof data.client, 'object');
+                assert.equal(data.client.id, 'client');
+                assert.equal(data.client.baz, 'baz');
+                assert.equal(Object.keys(data.client).length, 2);
+                assert.ok(Array.isArray(data.scope));
+                assert.equal(data.scope.length, 1);
+                assert.equal(data.scope[0], 'scope');
+                assert.equal(data.audience, 'audience');
                 assert.equal(Object.keys(data).length, 3);
-                done();                
+                done();
             });
         });
     });
 
     it('rejects calls without authorization secret', function (done) {
         compilers['credentials-exchange']({
-            nodejsCompiler, 
-            script: 'module.exports = function(ctx, cb) { ctx.baz = "baz"; cb(null, ctx); };'
+            nodejsCompiler,
+            script: 'module.exports = function(client, scope, audience, cb) { ctx.baz = "baz"; cb(null, ctx); };'
         }, function (error, func) {
             assert.ifError(error);
             func({
-                body: { foo: 'foo', bar: 'bar' },
+                body: { client: { id: 'client' }, scope: ['scope'], audience: 'audience' },
                 secrets: { 'auth0-extension-secret': 'foo' },
                 headers: {}
             }, function (error, data) {
                 assert.ok(error);
+                assert.equal(error.statusCode, 403);
                 assert.equal(data, undefined);
-                done();                
+                done();
             });
         });
     });
 
     it('rejects calls with wrong authorization secret', function (done) {
         compilers['credentials-exchange']({
-            nodejsCompiler, 
-            script: 'module.exports = function(ctx, cb) { ctx.baz = "baz"; cb(null, ctx); };'
+            nodejsCompiler,
+            script: 'module.exports = function(client, scope, audience, cb) { ctx.baz = "baz"; cb(null, ctx); };'
         }, function (error, func) {
             assert.ifError(error);
             func({
-                body: { foo: 'foo', bar: 'bar' },
+                body: { client: { id: 'client' }, scope: ['scope'], audience: 'audience' },
                 secrets: { 'auth0-extension-secret': 'foo' },
                 headers: { 'authorization': 'Bearer bar' }
             }, function (error, data) {
                 assert.ok(error);
+                assert.equal(error.statusCode, 403);
                 assert.equal(data, undefined);
-                done();                
+                done();
             });
         });
     });
