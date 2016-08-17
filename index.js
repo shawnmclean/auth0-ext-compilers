@@ -4,7 +4,7 @@ const Errors = require('./lib/errors');
 
 
 module.exports = {
-    'credentials-exchange': authorize_and_process_body,
+    'client-credentials-exchange': authorize_and_process_body,
 };
 
 
@@ -24,8 +24,8 @@ function authorize_and_process_body(options, cb) {
 
                 return func(ctx.body.client, ctx.body.scope, ctx.body.audience, buildResponse);
             }
-            
-            
+
+
             function buildResponse(error, data) {
                 var response = {
                     statusCode: 200,
@@ -34,7 +34,7 @@ function authorize_and_process_body(options, cb) {
                     },
                     data,
                 }
-                
+
                 if (error) {
                     response.statusCode = error.statusCode || 500;
                     response.data = {
@@ -44,14 +44,14 @@ function authorize_and_process_body(options, cb) {
                         stack: error.stack,
                     };
                 }
-                
+
                 return respond(response);
             }
-            
+
             function respond(response) {
                 try {
                     const body = JSON.stringify(response.data);
-                    
+
                     res.writeHead(response.statusCode, response.headers);
                     res.end(body);
                 } catch (e) {
