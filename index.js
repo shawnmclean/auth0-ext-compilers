@@ -26,13 +26,13 @@ function authorize_and_process_body(options, cb) {
             }
 
 
-            function buildResponse(error, data) {
+            function buildResponse(error, accessToken) {
                 var response = {
                     statusCode: 200,
                     headers: {
                         'Content-Type': 'application/javascript',
                     },
-                    data,
+                    data: accessToken,
                 }
 
                 if (error) {
