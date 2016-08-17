@@ -1,214 +1,219 @@
-var assert = require('assert')
-var compilers = require('../index');
+'use strict';
+
+const Assert = require('assert')
+const Compilers = require('../index');
+const Runtime = require('webtask-runtime');
+
 
 describe('auth0-ext-compilers', function () {
 
     it('has credentials-exchange api', function () {
-        assert.equal(typeof compilers['credentials-exchange'], 'function');
+        Assert.equal(typeof Compilers['client-credentials-exchange'], 'function');
     });
 
 });
 
-describe('credentials-exchange', function () {
+describe('client-credentials-exchange', function () {
 
     it('compiles to a function with 2 arguments', function (done) {
-        compilers['credentials-exchange']({
+        Compilers['client-credentials-exchange']({
             nodejsCompiler,
             script: 'module.exports = function(client, scope, audience, cb) { cb(null, ctx); };'
         }, function (error, func) {
-            assert.ifError(error);
-            assert.equal(typeof func, 'function');
-            assert.equal(func.length, 2);
+            Assert.ifError(error);
+            Assert.equal(typeof func, 'function');
+            Assert.equal(func.length, 3);
             done();
         });
     });
 
     it('success when scope is undefined (unauthenticated)', function (done) {
-        compilers['credentials-exchange']({
+        Compilers['client-credentials-exchange']({
             nodejsCompiler,
             script: 'module.exports = function(client, scope, audience, cb) { client.baz = "baz"; cb(null, { client, scope, audience }); };'
         }, function (error, func) {
-            assert.ifError(error);
-            func({
+            Assert.ifError(error);
+
+            simulate(func, {
                 body: { client: { id: 'client' }, audience: 'audience' },
                 headers: {}
             }, function (error, data) {
-                assert.ifError(error);
-                assert.ok(data);
-                assert.equal(typeof data, 'object');
-                assert.equal(typeof data.client, 'object');
-                assert.equal(data.client.id, 'client');
-                assert.equal(data.client.baz, 'baz');
-                assert.equal(Object.keys(data.client).length, 2);
-                assert.equal(typeof data.scope, 'undefined');
-                assert.equal(data.audience, 'audience');
-                assert.equal(Object.keys(data).length, 3);
+                Assert.ifError(error);
+                Assert.ok(data);
+                Assert.equal(typeof data, 'object');
+                Assert.equal(typeof data.client, 'object');
+                Assert.equal(data.client.id, 'client');
+                Assert.equal(data.client.baz, 'baz');
+                Assert.equal(Object.keys(data.client).length, 2);
+                Assert.equal(typeof data.scope, 'undefined');
+                Assert.equal(data.audience, 'audience');
+                Assert.equal(Object.keys(data).length, 2);
                 done();
             });
         });
     });
 
     it('success getting, modifying, and returning body (unauthenticated)', function (done) {
-        compilers['credentials-exchange']({
+        Compilers['client-credentials-exchange']({
             nodejsCompiler,
             script: 'module.exports = function(client, scope, audience, cb) { client.baz = "baz"; cb(null, { client, scope, audience }); };'
         }, function (error, func) {
-            assert.ifError(error);
-            func({
+            Assert.ifError(error);
+            simulate(func, {
                 body: { client: { id: 'client' }, scope: ['scope'], audience: 'audience' },
                 headers: {}
             }, function (error, data) {
-                assert.ifError(error);
-                assert.ok(data);
-                assert.equal(typeof data, 'object');
-                assert.equal(typeof data.client, 'object');
-                assert.equal(data.client.id, 'client');
-                assert.equal(data.client.baz, 'baz');
-                assert.equal(Object.keys(data.client).length, 2);
-                assert.ok(Array.isArray(data.scope));
-                assert.equal(data.scope.length, 1);
-                assert.equal(data.scope[0], 'scope');
-                assert.equal(data.audience, 'audience');
-                assert.equal(Object.keys(data).length, 3);
+                Assert.ifError(error);
+                Assert.ok(data);
+                Assert.equal(typeof data, 'object');
+                Assert.equal(typeof data.client, 'object');
+                Assert.equal(data.client.id, 'client');
+                Assert.equal(data.client.baz, 'baz');
+                Assert.equal(Object.keys(data.client).length, 2);
+                Assert.ok(Array.isArray(data.scope));
+                Assert.equal(data.scope.length, 1);
+                Assert.equal(data.scope[0], 'scope');
+                Assert.equal(data.audience, 'audience');
+                Assert.equal(Object.keys(data).length, 3);
                 done();
             });
         });
     });
 
     it('success getting, modifying, and returning body (authenticated)', function (done) {
-        compilers['credentials-exchange']({
+        Compilers['client-credentials-exchange']({
             nodejsCompiler,
             script: 'module.exports = function(client, scope, audience, cb) { client.baz = "baz"; cb(null, { client, scope, audience }); };'
         }, function (error, func) {
-            assert.ifError(error);
-            func({
+            Assert.ifError(error);
+            simulate(func, {
                 body: { client: { id: 'client' }, scope: ['scope'], audience: 'audience' },
                 query: { 'auth0-extension-secret': 'foo' },
                 secrets: { 'auth0-extension-secret': 'foo' },
                 headers: { 'authorization': 'Bearer foo' }
             }, function (error, data) {
-                assert.ifError(error);
-                assert.ok(data);
-                assert.equal(typeof data, 'object');
-                assert.equal(typeof data.client, 'object');
-                assert.equal(data.client.id, 'client');
-                assert.equal(data.client.baz, 'baz');
-                assert.equal(Object.keys(data.client).length, 2);
-                assert.ok(Array.isArray(data.scope));
-                assert.equal(data.scope.length, 1);
-                assert.equal(data.scope[0], 'scope');
-                assert.equal(data.audience, 'audience');
-                assert.equal(Object.keys(data).length, 3);
+                Assert.ifError(error);
+                Assert.ok(data);
+                Assert.equal(typeof data, 'object');
+                Assert.equal(typeof data.client, 'object');
+                Assert.equal(data.client.id, 'client');
+                Assert.equal(data.client.baz, 'baz');
+                Assert.equal(Object.keys(data.client).length, 2);
+                Assert.ok(Array.isArray(data.scope));
+                Assert.equal(data.scope.length, 1);
+                Assert.equal(data.scope[0], 'scope');
+                Assert.equal(data.audience, 'audience');
+                Assert.equal(Object.keys(data).length, 3);
                 done();
             });
         });
     });
 
     it('rejects calls with invalid payload', function (done) {
-        compilers['credentials-exchange']({
+        Compilers['client-credentials-exchange']({
             nodejsCompiler,
             script: 'module.exports = function(client, scope, audience, cb) { cb(null, { client, scope, audience }); };'
         }, function (error, func) {
-            assert.ifError(error);
-            func({
+            Assert.ifError(error);
+            simulate(func, {
                 body: 'no good',
                 headers: {}
             }, function (error, data) {
-                assert.ok(error);
-                assert.equal(error.statusCode, 400);
-                assert.equal(data, undefined);
+                Assert.ok(error);
+                Assert.equal(error.statusCode, 400);
+                Assert.equal(data, undefined);
                 done();
             });
         });
     });
 
     it('rejects calls with invalid payload (bad client)', function (done) {
-        compilers['credentials-exchange']({
+        Compilers['client-credentials-exchange']({
             nodejsCompiler,
             script: 'module.exports = function(client, scope, audience, cb) { cb(null, { client, scope, audience }); };'
         }, function (error, func) {
-            assert.ifError(error);
-            func({
+            Assert.ifError(error);
+            simulate(func, {
                 body: { client: 'client', audience: 'audience' },
                 headers: {}
             }, function (error, data) {
-                assert.ok(error);
-                assert.equal(error.statusCode, 400);
-                assert.equal(data, undefined);
+                Assert.ok(error);
+                Assert.equal(error.statusCode, 400);
+                Assert.equal(data, undefined);
                 done();
             });
         });
     });
 
     it('rejects calls with invalid payload (bad scope)', function (done) {
-        compilers['credentials-exchange']({
+        Compilers['client-credentials-exchange']({
             nodejsCompiler,
             script: 'module.exports = function(client, scope, audience, cb) { cb(null, { client, scope, audience }); };'
         }, function (error, func) {
-            assert.ifError(error);
-            func({
+            Assert.ifError(error);
+            simulate(func, {
                 body: { client: {}, scope: 'scope', audience: 'audience' },
                 headers: {}
             }, function (error, data) {
-                assert.ok(error);
-                assert.equal(error.statusCode, 400);
-                assert.equal(data, undefined);
+                Assert.ok(error);
+                Assert.equal(error.statusCode, 400);
+                Assert.equal(data, undefined);
                 done();
             });
         });
     });
 
     it('rejects calls with invalid payload (bad audience)', function (done) {
-        compilers['credentials-exchange']({
+        Compilers['client-credentials-exchange']({
             nodejsCompiler,
             script: 'module.exports = function(client, scope, audience, cb) { cb(null, { client, scope, audience }); };'
         }, function (error, func) {
-            assert.ifError(error);
-            func({
+            Assert.ifError(error);
+            simulate(func, {
                 body: { client: {}, scope: 'scope', audience: [] },
                 headers: {}
             }, function (error, data) {
-                assert.ok(error);
-                assert.equal(error.statusCode, 400);
-                assert.equal(data, undefined);
+                Assert.ok(error);
+                Assert.equal(error.statusCode, 400);
+                Assert.equal(data, undefined);
                 done();
             });
         });
     });
 
     it('rejects calls without authorization secret', function (done) {
-        compilers['credentials-exchange']({
+        Compilers['client-credentials-exchange']({
             nodejsCompiler,
             script: 'module.exports = function(client, scope, audience, cb) { cb(null, { client, scope, audience }); };'
         }, function (error, func) {
-            assert.ifError(error);
-            func({
+            Assert.ifError(error);
+            simulate(func, {
                 body: { client: { id: 'client' }, scope: ['scope'], audience: 'audience' },
                 secrets: { 'auth0-extension-secret': 'foo' },
                 headers: {}
             }, function (error, data) {
-                assert.ok(error);
-                assert.equal(error.statusCode, 403);
-                assert.equal(data, undefined);
+                Assert.ok(error);
+                Assert.equal(error.statusCode, 401);
+                Assert.equal(data, undefined);
                 done();
             });
         });
     });
 
     it('rejects calls with wrong authorization secret', function (done) {
-        compilers['credentials-exchange']({
+        Compilers['client-credentials-exchange']({
             nodejsCompiler,
             script: 'module.exports = function(client, scope, audience, cb) { cb(null, { client, scope, audience }); };'
         }, function (error, func) {
-            assert.ifError(error);
-            func({
+            Assert.ifError(error);
+            simulate(func, {
                 body: { client: { id: 'client' }, scope: ['scope'], audience: 'audience' },
                 secrets: { 'auth0-extension-secret': 'foo' },
                 headers: { 'authorization': 'Bearer bar' }
             }, function (error, data) {
-                assert.ok(error);
-                assert.equal(error.statusCode, 403);
-                assert.equal(data, undefined);
+                Assert.ok(error);
+                Assert.equal(error.statusCode, 401);
+                Assert.equal(data, undefined);
                 done();
             });
         });
@@ -228,4 +233,30 @@ function nodejsCompiler(script, cb) {
         return cb(e);
     }
     return cb(null, func);
+}
+
+function simulate(ruleFn, options, cb) {
+    const headers = options.headers || {};
+    const payload = JSON.stringify(options.body);
+
+    headers['Content-Type'] = 'application/json';
+
+    return Runtime.simulate(ruleFn, { headers, payload, parseBody: true, secrets: options.secrets }, mapResponse);
+
+
+    function mapResponse(response) {
+        const payload = JSON.parse(response.payload);
+
+        if (response.statusCode >= 400) {
+            const error = new Error(payload.message);
+
+            error.code = payload.code;
+            error.statusCode = payload.statusCode;
+            error.stack = payload.stack;
+
+            return cb(error);
+        }
+
+        return cb(null, payload);
+    }
 }
