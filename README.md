@@ -4,7 +4,7 @@ This module is installed on the webtask platform via the [webtask-mongo](https:/
 
 ## Creating Auth0 extensions with *wt-cli*
 
-To create a webtask that implements a specific extensibility point, you can use the `wt-cli` tool or a corresponding webtask API call. For example, to create a *credentials-exchange* extension you could call: 
+To create a webtask that implements a specific extensibility point, you can use the `wt-cli` tool or a corresponding webtask API call. For example, to create a *client-credentials-exchange* extension you could call: 
 
 ```bash
 cat > custom_claims.js <<EOF
@@ -18,9 +18,9 @@ EOF
 SECRET=$(openssl rand 32 -base64) && \
 wt create custom_claims.js \
     -p default-tjanczuk \
-    --meta wt-compiler=auth0-ext-compilers/credentials-exchange \
+    --meta wt-compiler=auth0-ext-compilers/client-credentials-exchange \
     --meta auth0-extension=runtime \
-    --meta auth0-extension-name=credentials-exchange \
+    --meta auth0-extension-name=client-credentials-exchange \
     --meta auth0-extension-secret=$SECRET \
     --secret auth0-extension-secret=$SECRET
 ```
@@ -32,7 +32,7 @@ Auth0 extension is a webtask created in the Auth0 tenant's webtask container and
 |  Name  |  Required?  |  Value  |
 | --- | --- | --- |
 | `auth0-extension`  | Yes | Must be set to `runtime`. |
-| `auth0-extension-name` | Yes | The name of the extensibility point in Auth0. This is used by Auth0 to select the set of webtasks to run in a specific place and circumstances of Auth0 processing. Currently only the value of `credentials-exchange` is supported but the list will grow as we add new extension points. |
+| `auth0-extension-name` | Yes | The name of the extensibility point in Auth0. This is used by Auth0 to select the set of webtasks to run in a specific place and circumstances of Auth0 processing. Currently only the value of `client-credentials-exchange` is supported but the list will grow as we add new extension points. |
 | `auth0-extension-client` | No | Auth0 extension points which only wish to execute extensions configured for a particular client_id will use this value to select the webtasks that should be run. |
 | `auth0-extension-disabled` | No | If set, disables the webtask. |
 | `auth0-extension-order` | No | Webtasks selected to run for a given extension point in Auth0 will be sorted following an increasing order of this numeric metadata property. If not specified, `0` is assumed. Order of webtasks with the same value of `auth0-extension-order` is indeterministic. |
@@ -60,15 +60,15 @@ Different Auth0 extensibility points may present unique programming models to th
 
 ```bash
 wt create {file}.js \
-    --meta wt-compiler=auth0-ext-compilers/credentials-exchange \
+    --meta wt-compiler=auth0-ext-compilers/client-credentials-exchange \
     ...
 ```
 
 Webtask compilers for Auth0 extension points also enforce the authorization check described in the previous section. 
 
-### The *credentials-exchange* extensibility point
+### The *client-credentials-exchange* extensibility point
 
-The *credentials-exchange* extensibility point allows custom code to modify the scopes and add custom claims to the tokens issued from the `POST /oauth/token` Auth0 API.
+The *client-credentials-exchange* extensibility point allows custom code to modify the scopes and add custom claims to the tokens issued from the `POST /oauth/token` Auth0 API.
 
 #### Request body
 
@@ -103,21 +103,21 @@ will be added as claims to the token being issued. All other response properties
 
 #### Programming model
 
-```
+**client-credentials-exchange**:
+
+```javascript
 /**
-@param {object} ctx - represents request body
-@param {string} ctx.audience - token's audience claim
-@param {array}  ctx.scope - array of strings representing the scope claim
-@param {object} ctx.client - information about the client
-@param {string} ctx.client.name - name of client
-@param {string} ctx.client.id - client id
-@param {string} ctx.client.tenant - Auth0 tenant name
-@param {object} ctx.client.metadata - client metadata
-@param {function} cb - function (error, response)
+@param {object} client - information about the client
+@param {string} client.name - name of client
+@param {string} client.id - client id
+@param {string} client.tenant - Auth0 tenant name
+@param {object} client.metadata - client metadata
+@param {array|undefined} scope - array of strings representing the scope claim or undefined
+@param {string} audience - token's audience claim
+@param {function} cb - function (error, accessTokenClaims)
 */
-module.exports = function (ctx, cb) {
-  // modify ctx.scope array
+module.exports = function (client, scope, audience, cb) {
   // add any namespaced claims directly to ctx
-  cb(null, ctx); // return error or modified ctx
+  cb(null, { claim: 'value' }); // return error or a mapping of access token claims
 };
 ```
