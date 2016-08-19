@@ -7,18 +7,123 @@ const Runtime = require('webtask-runtime');
 
 describe('auth0-ext-compilers', function () {
 
-    it('has credentials-exchange api', function () {
+    it('has generic api', function () {
+        Assert.equal(typeof Compilers['generic'], 'function');
+    });
+
+    it('has client-credentials-exchange api', function () {
         Assert.equal(typeof Compilers['client-credentials-exchange'], 'function');
     });
 
 });
 
-describe('client-credentials-exchange', function () {
+describe('generic', function () {
+    const compiler = Compilers['generic'];
 
     it('compiles to a function with 2 arguments', function (done) {
-        Compilers['client-credentials-exchange']({
+        compiler({
             nodejsCompiler,
-            script: 'module.exports = function(client, scope, audience, cb) { cb(null, ctx); };'
+            script: 'module.exports = function(context, cb) { cb(null, context); };'
+        }, function (error, func) {
+            Assert.ifError(error);
+            Assert.equal(typeof func, 'function');
+            Assert.equal(func.length, 3);
+            done();
+        });
+    });
+
+    it('success getting, modifying, and returning body (unauthenticated)', function (done) {
+        compiler({
+            nodejsCompiler,
+            script: 'module.exports = function(context, cb) { context.baz = "baz"; cb(null, context); };'
+        }, function (error, func) {
+            Assert.ifError(error);
+
+            simulate(func, {
+                body: { id: 'client' },
+                headers: {}
+            }, function (error, data) {
+                Assert.ifError(error);
+                Assert.ok(data);
+                Assert.equal(typeof data, 'object');
+                Assert.equal(data.id, 'client');
+                Assert.equal(data.baz, 'baz');
+                Assert.equal(Object.keys(data).length, 2);
+                done();
+            });
+        });
+    });
+
+    it('success getting, modifying, and returning body (authenticated)', function (done) {
+        compiler({
+            nodejsCompiler,
+            script: 'module.exports = function(context, cb) { context.baz = "baz"; cb(null, context); };'
+        }, function (error, func) {
+            Assert.ifError(error);
+            simulate(func, {
+                body: { id: 'client' },
+                secrets: { 'auth0-extension-secret': 'foo' },
+                headers: { 'authorization': 'Bearer foo' }
+            }, function (error, data) {
+                Assert.ifError(error);
+                Assert.ok(data);
+                Assert.equal(typeof data, 'object');
+                Assert.equal(data.id, 'client');
+                Assert.equal(data.baz, 'baz');
+                Assert.equal(Object.keys(data).length, 2);
+                done();
+            });
+        });
+    });
+
+    it('rejects calls without authorization secret', function (done) {
+        compiler({
+            nodejsCompiler,
+            script: 'module.exports = function(context, cb) { cb(null, context); };'
+        }, function (error, func) {
+            Assert.ifError(error);
+            simulate(func, {
+                body: { id: 'client' },
+                secrets: { 'auth0-extension-secret': 'foo' },
+                headers: {}
+            }, function (error, data) {
+                Assert.ok(error);
+                Assert.equal(error.statusCode, 401);
+                Assert.equal(data, undefined);
+                done();
+            });
+        });
+    });
+
+    it('rejects calls with wrong authorization secret', function (done) {
+        compiler({
+            nodejsCompiler,
+            script: 'module.exports = function(context, cb) { cb(null, context); };'
+        }, function (error, func) {
+            Assert.ifError(error);
+            simulate(func, {
+                body: { id: 'client' },
+                secrets: { 'auth0-extension-secret': 'foo' },
+                headers: { 'authorization': 'Bearer bar' }
+            }, function (error, data) {
+                Assert.ok(error);
+                Assert.equal(error.statusCode, 401);
+                Assert.equal(data, undefined);
+                done();
+            });
+        });
+    });
+
+});
+
+
+describe('client-credentials-exchange', function () {
+    const compiler = Compilers['client-credentials-exchange'];
+
+    it('compiles to a function with 2 arguments', function (done) {
+        compiler({
+            nodejsCompiler,
+            script: 'module.exports = function(client, scope, audience, context, cb) { cb(null, ctx); };'
         }, function (error, func) {
             Assert.ifError(error);
             Assert.equal(typeof func, 'function');
@@ -28,9 +133,9 @@ describe('client-credentials-exchange', function () {
     });
 
     it('success when scope is undefined (unauthenticated)', function (done) {
-        Compilers['client-credentials-exchange']({
+        compiler({
             nodejsCompiler,
-            script: 'module.exports = function(client, scope, audience, cb) { client.baz = "baz"; cb(null, { client, scope, audience }); };'
+            script: 'module.exports = function(client, scope, audience, context, cb) { client.baz = "baz"; cb(null, { client, scope, audience }); };'
         }, function (error, func) {
             Assert.ifError(error);
 
@@ -54,13 +159,13 @@ describe('client-credentials-exchange', function () {
     });
 
     it('success getting, modifying, and returning body (unauthenticated)', function (done) {
-        Compilers['client-credentials-exchange']({
+        compiler({
             nodejsCompiler,
-            script: 'module.exports = function(client, scope, audience, cb) { client.baz = "baz"; cb(null, { client, scope, audience }); };'
+            script: 'module.exports = function(client, scope, audience, context, cb) { client.baz = "baz"; context.hello = "moon"; delete context.webtask; cb(null, { client, scope, audience, context }); };'
         }, function (error, func) {
             Assert.ifError(error);
             simulate(func, {
-                body: { client: { id: 'client' }, scope: ['scope'], audience: 'audience' },
+                body: { client: { id: 'client' }, scope: ['scope'], audience: 'audience', context: { hello: 'world', foo: 'bar' } },
                 headers: {}
             }, function (error, data) {
                 Assert.ifError(error);
@@ -74,21 +179,24 @@ describe('client-credentials-exchange', function () {
                 Assert.equal(data.scope.length, 1);
                 Assert.equal(data.scope[0], 'scope');
                 Assert.equal(data.audience, 'audience');
-                Assert.equal(Object.keys(data).length, 3);
+                Assert.equal(typeof data.context, 'object');
+                Assert.equal(data.context.hello, 'moon');
+                Assert.equal(data.context.foo, 'bar');
+                Assert.equal(Object.keys(data.context).length, 2);
+                Assert.equal(Object.keys(data).length, 4);
                 done();
             });
         });
     });
 
     it('success getting, modifying, and returning body (authenticated)', function (done) {
-        Compilers['client-credentials-exchange']({
+        compiler({
             nodejsCompiler,
-            script: 'module.exports = function(client, scope, audience, cb) { client.baz = "baz"; cb(null, { client, scope, audience }); };'
+            script: 'module.exports = function(client, scope, audience, context, cb) { client.baz = "baz"; context.hello = "moon"; delete context.webtask; cb(null, { client, scope, audience, context }); };'
         }, function (error, func) {
             Assert.ifError(error);
             simulate(func, {
-                body: { client: { id: 'client' }, scope: ['scope'], audience: 'audience' },
-                query: { 'auth0-extension-secret': 'foo' },
+                body: { client: { id: 'client' }, scope: ['scope'], audience: 'audience', context: { hello: 'world', foo: 'bar' } },
                 secrets: { 'auth0-extension-secret': 'foo' },
                 headers: { 'authorization': 'Bearer foo' }
             }, function (error, data) {
@@ -103,6 +211,32 @@ describe('client-credentials-exchange', function () {
                 Assert.equal(data.scope.length, 1);
                 Assert.equal(data.scope[0], 'scope');
                 Assert.equal(data.audience, 'audience');
+                Assert.equal(typeof data.context, 'object');
+                Assert.equal(data.context.hello, 'moon');
+                Assert.equal(data.context.foo, 'bar');
+                Assert.equal(Object.keys(data.context).length, 2);
+                Assert.equal(Object.keys(data).length, 4);
+                done();
+            });
+        });
+    });
+
+    it('creates a default, empty context object with the webtask property', function (done) {
+        compiler({
+            nodejsCompiler,
+            script: 'module.exports = function(client, scope, audience, context, cb) { cb(null, { type: typeof context, length: Object.keys(context).length, webtask: typeof context.webtask }); };'
+        }, function (error, func) {
+            Assert.ifError(error);
+            simulate(func, {
+                body: { client: { id: 'client' }, scope: ['scope'], audience: 'audience' },
+                headers: { 'authorization': 'Bearer foo' }
+            }, function (error, data) {
+                Assert.ifError(error);
+                Assert.ok(data);
+                Assert.equal(typeof data, 'object');
+                Assert.equal(data.type, 'object');
+                Assert.equal(data.length, 1);
+                Assert.equal(data.webtask, 'object');
                 Assert.equal(Object.keys(data).length, 3);
                 done();
             });
@@ -110,9 +244,9 @@ describe('client-credentials-exchange', function () {
     });
 
     it('rejects calls with invalid payload', function (done) {
-        Compilers['client-credentials-exchange']({
+        compiler({
             nodejsCompiler,
-            script: 'module.exports = function(client, scope, audience, cb) { cb(null, { client, scope, audience }); };'
+            script: 'module.exports = function(client, scope, audience, context, cb) { cb(null, { client, scope, audience }); };'
         }, function (error, func) {
             Assert.ifError(error);
             simulate(func, {
@@ -128,9 +262,9 @@ describe('client-credentials-exchange', function () {
     });
 
     it('rejects calls with invalid payload (bad client)', function (done) {
-        Compilers['client-credentials-exchange']({
+        compiler({
             nodejsCompiler,
-            script: 'module.exports = function(client, scope, audience, cb) { cb(null, { client, scope, audience }); };'
+            script: 'module.exports = function(client, scope, audience, context, cb) { cb(null, { client, scope, audience }); };'
         }, function (error, func) {
             Assert.ifError(error);
             simulate(func, {
@@ -146,9 +280,9 @@ describe('client-credentials-exchange', function () {
     });
 
     it('rejects calls with invalid payload (bad scope)', function (done) {
-        Compilers['client-credentials-exchange']({
+        compiler({
             nodejsCompiler,
-            script: 'module.exports = function(client, scope, audience, cb) { cb(null, { client, scope, audience }); };'
+            script: 'module.exports = function(client, scope, audience, context, cb) { cb(null, { client, scope, audience }); };'
         }, function (error, func) {
             Assert.ifError(error);
             simulate(func, {
@@ -164,9 +298,9 @@ describe('client-credentials-exchange', function () {
     });
 
     it('rejects calls with invalid payload (bad audience)', function (done) {
-        Compilers['client-credentials-exchange']({
+        compiler({
             nodejsCompiler,
-            script: 'module.exports = function(client, scope, audience, cb) { cb(null, { client, scope, audience }); };'
+            script: 'module.exports = function(client, scope, audience, context, cb) { cb(null, { client, scope, audience }); };'
         }, function (error, func) {
             Assert.ifError(error);
             simulate(func, {
@@ -182,9 +316,9 @@ describe('client-credentials-exchange', function () {
     });
 
     it('rejects calls without authorization secret', function (done) {
-        Compilers['client-credentials-exchange']({
+        compiler({
             nodejsCompiler,
-            script: 'module.exports = function(client, scope, audience, cb) { cb(null, { client, scope, audience }); };'
+            script: 'module.exports = function(client, scope, audience, context, cb) { cb(null, { client, scope, audience }); };'
         }, function (error, func) {
             Assert.ifError(error);
             simulate(func, {
@@ -201,9 +335,9 @@ describe('client-credentials-exchange', function () {
     });
 
     it('rejects calls with wrong authorization secret', function (done) {
-        Compilers['client-credentials-exchange']({
+        compiler({
             nodejsCompiler,
-            script: 'module.exports = function(client, scope, audience, cb) { cb(null, { client, scope, audience }); };'
+            script: 'module.exports = function(client, scope, audience, context, cb) { cb(null, { client, scope, audience }); };'
         }, function (error, func) {
             Assert.ifError(error);
             simulate(func, {
