@@ -2,5 +2,6 @@
 
 
 module.exports = {
-    'client-credentials-exchange': require('./lib/client_credentials_exchange'),
+    'client-credentials-exchange': require('./lib/compilers/client_credentials_exchange'),
+    'generic': require('./lib/compilers/generic'),
 };
