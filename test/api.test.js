@@ -62,7 +62,6 @@ describe('generic', function () {
             Assert.ifError(error);
             simulate(func, {
                 body: { id: 'client' },
-                query: { 'auth0-extension-secret': 'foo' },
                 secrets: { 'auth0-extension-secret': 'foo' },
                 headers: { 'authorization': 'Bearer foo' }
             }, function (error, data) {
@@ -198,7 +197,6 @@ describe('client-credentials-exchange', function () {
             Assert.ifError(error);
             simulate(func, {
                 body: { client: { id: 'client' }, scope: ['scope'], audience: 'audience', context: { hello: 'world', foo: 'bar' } },
-                query: { 'auth0-extension-secret': 'foo' },
                 secrets: { 'auth0-extension-secret': 'foo' },
                 headers: { 'authorization': 'Bearer foo' }
             }, function (error, data) {
