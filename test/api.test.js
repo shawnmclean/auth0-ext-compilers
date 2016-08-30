@@ -162,11 +162,11 @@ describe('client-credentials-exchange', function () {
     it('success getting, modifying, and returning body (unauthenticated)', function (done) {
         compiler({
             nodejsCompiler,
-            script: 'module.exports = function(client, scope, audience, context, cb) { client.baz = "baz"; cb(null, { client, scope, audience }); };'
+            script: 'module.exports = function(client, scope, audience, context, cb) { client.baz = "baz"; context.hello = "moon"; cb(null, { client, scope, audience, context }); };'
         }, function (error, func) {
             Assert.ifError(error);
             simulate(func, {
-                body: { client: { id: 'client' }, scope: ['scope'], audience: 'audience' },
+                body: { client: { id: 'client' }, scope: ['scope'], audience: 'audience', context: { hello: 'world', foo: 'bar' } },
                 headers: {}
             }, function (error, data) {
                 Assert.ifError(error);
@@ -180,7 +180,11 @@ describe('client-credentials-exchange', function () {
                 Assert.equal(data.scope.length, 1);
                 Assert.equal(data.scope[0], 'scope');
                 Assert.equal(data.audience, 'audience');
-                Assert.equal(Object.keys(data).length, 3);
+                Assert.equal(typeof data.context, 'object');
+                Assert.equal(data.context.hello, 'moon');
+                Assert.equal(data.context.foo, 'bar');
+                Assert.equal(Object.keys(data.context).length, 2);
+                Assert.equal(Object.keys(data).length, 4);
                 done();
             });
         });
@@ -189,11 +193,11 @@ describe('client-credentials-exchange', function () {
     it('success getting, modifying, and returning body (authenticated)', function (done) {
         compiler({
             nodejsCompiler,
-            script: 'module.exports = function(client, scope, audience, context, cb) { client.baz = "baz"; cb(null, { client, scope, audience }); };'
+            script: 'module.exports = function(client, scope, audience, context, cb) { client.baz = "baz"; context.hello = "moon"; cb(null, { client, scope, audience, context }); };'
         }, function (error, func) {
             Assert.ifError(error);
             simulate(func, {
-                body: { client: { id: 'client' }, scope: ['scope'], audience: 'audience' },
+                body: { client: { id: 'client' }, scope: ['scope'], audience: 'audience', context: { hello: 'world', foo: 'bar' } },
                 query: { 'auth0-extension-secret': 'foo' },
                 secrets: { 'auth0-extension-secret': 'foo' },
                 headers: { 'authorization': 'Bearer foo' }
@@ -209,7 +213,32 @@ describe('client-credentials-exchange', function () {
                 Assert.equal(data.scope.length, 1);
                 Assert.equal(data.scope[0], 'scope');
                 Assert.equal(data.audience, 'audience');
-                Assert.equal(Object.keys(data).length, 3);
+                Assert.equal(typeof data.context, 'object');
+                Assert.equal(data.context.hello, 'moon');
+                Assert.equal(data.context.foo, 'bar');
+                Assert.equal(Object.keys(data.context).length, 2);
+                Assert.equal(Object.keys(data).length, 4);
+                done();
+            });
+        });
+    });
+
+    it('creates a default, empty context object', function (done) {
+        compiler({
+            nodejsCompiler,
+            script: 'module.exports = function(client, scope, audience, context, cb) { cb(null, { type: typeof context, length: Object.keys(context).length }); };'
+        }, function (error, func) {
+            Assert.ifError(error);
+            simulate(func, {
+                body: { client: { id: 'client' }, scope: ['scope'], audience: 'audience' },
+                headers: { 'authorization': 'Bearer foo' }
+            }, function (error, data) {
+                Assert.ifError(error);
+                Assert.ok(data);
+                Assert.equal(typeof data, 'object');
+                Assert.equal(data.type, 'object');
+                Assert.equal(data.length, 0);
+                Assert.equal(Object.keys(data).length, 2);
                 done();
             });
         });
