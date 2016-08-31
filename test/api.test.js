@@ -35,7 +35,7 @@ describe('generic', function () {
     it('success getting, modifying, and returning body (unauthenticated)', function (done) {
         compiler({
             nodejsCompiler,
-            script: 'module.exports = function(context, cb) { context.baz = "baz"; cb(null, context); };'
+            script: 'module.exports = function(context, cb) { context.body.baz = "baz"; cb(null, context.body); };'
         }, function (error, func) {
             Assert.ifError(error);
 
@@ -57,7 +57,7 @@ describe('generic', function () {
     it('success getting, modifying, and returning body (authenticated)', function (done) {
         compiler({
             nodejsCompiler,
-            script: 'module.exports = function(context, cb) { context.baz = "baz"; cb(null, context); };'
+            script: 'module.exports = function(context, cb) { context.body.baz = "baz"; cb(null, context.body); };'
         }, function (error, func) {
             Assert.ifError(error);
             simulate(func, {
