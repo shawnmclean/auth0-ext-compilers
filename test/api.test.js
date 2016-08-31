@@ -161,7 +161,7 @@ describe('client-credentials-exchange', function () {
     it('success getting, modifying, and returning body (unauthenticated)', function (done) {
         compiler({
             nodejsCompiler,
-            script: 'module.exports = function(client, scope, audience, context, cb) { client.baz = "baz"; context.hello = "moon"; cb(null, { client, scope, audience, context }); };'
+            script: 'module.exports = function(client, scope, audience, context, cb) { client.baz = "baz"; context.hello = "moon"; delete context.webtask; cb(null, { client, scope, audience, context }); };'
         }, function (error, func) {
             Assert.ifError(error);
             simulate(func, {
@@ -192,7 +192,7 @@ describe('client-credentials-exchange', function () {
     it('success getting, modifying, and returning body (authenticated)', function (done) {
         compiler({
             nodejsCompiler,
-            script: 'module.exports = function(client, scope, audience, context, cb) { client.baz = "baz"; context.hello = "moon"; cb(null, { client, scope, audience, context }); };'
+            script: 'module.exports = function(client, scope, audience, context, cb) { client.baz = "baz"; context.hello = "moon"; delete context.webtask; cb(null, { client, scope, audience, context }); };'
         }, function (error, func) {
             Assert.ifError(error);
             simulate(func, {
@@ -221,10 +221,10 @@ describe('client-credentials-exchange', function () {
         });
     });
 
-    it('creates a default, empty context object', function (done) {
+    it('creates a default, empty context object with the webtask property', function (done) {
         compiler({
             nodejsCompiler,
-            script: 'module.exports = function(client, scope, audience, context, cb) { cb(null, { type: typeof context, length: Object.keys(context).length }); };'
+            script: 'module.exports = function(client, scope, audience, context, cb) { cb(null, { type: typeof context, length: Object.keys(context).length, webtask: typeof context.webtask }); };'
         }, function (error, func) {
             Assert.ifError(error);
             simulate(func, {
@@ -235,8 +235,9 @@ describe('client-credentials-exchange', function () {
                 Assert.ok(data);
                 Assert.equal(typeof data, 'object');
                 Assert.equal(data.type, 'object');
-                Assert.equal(data.length, 0);
-                Assert.equal(Object.keys(data).length, 2);
+                Assert.equal(data.length, 1);
+                Assert.equal(data.webtask, 'object');
+                Assert.equal(Object.keys(data).length, 3);
                 done();
             });
         });
