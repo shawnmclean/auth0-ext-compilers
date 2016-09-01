@@ -14,7 +14,8 @@ module.exports = function(client, scope, audience, context, cb) {
   access_token.scope = scope;
   access_token.scope.push('extra');
   cb(null, access_token);  
-};EOF
+};
+EOF
 
 SECRET=$(openssl rand 32 -base64) && \
 wt create custom_claims.js \
