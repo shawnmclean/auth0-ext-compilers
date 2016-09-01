@@ -126,3 +126,35 @@ module.exports = function (client, scope, audience, context cb) {
   cb(null, { claim: 'value' }); // return error or a mapping of access token claims
 };
 ```
+
+### The *generic* programming model for all extensibility points
+
+A generic compiler is provided (`auth0-ext-compilers/generic`) that does not adhere to any extension-specific programming model. Instead, this compiler is a light facade on top of the 2ary and 3ary [webtask programming models](https://webtask.io/docs/model). The compiler provides authentication of the incoming webtask request and then invokes the supplied function.
+
+#### 2ary *generic* extension
+
+```javascript
+module.exports = function(ctx, cb) {
+  var scope = ctx.body.scope;
+  var access_token = {};
+  access_token['https://foo.com/claim'] = 'bar';  
+  access_token.scope = scope;
+  access_token.scope.push('extra');
+  cb(null, access_token);  
+};
+```
+
+#### 3ary *generic* extension
+
+```javascript
+module.exports = function(ctx, req, res) {
+  var scope = ctx.body.scope;
+  var access_token = {};
+  access_token['https://foo.com/claim'] = 'bar';  
+  access_token.scope = scope;
+  access_token.scope.push('extra');
+  
+  res.writeHead(200, { 'Content-Type': 'application/json' });
+  res.end(JSON.stringify(access_token));
+};
+```
