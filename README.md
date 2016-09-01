@@ -27,9 +27,9 @@ wt create custom_claims.js \
     --secret auth0-extension-secret=$SECRET
 ```
 
-## What is Auth0 extension
+## What is an Auth0 extension
 
-Auth0 extension is a webtask created in the Auth0 tenant's webtask container and associated with specific metadata properties as outlined in the table below. 
+An Auth0 extension is a webtask created in the Auth0 tenant's webtask container and associated with specific metadata properties as outlined in the table below. 
 
 |  Name  |  Required?  |  Value  |
 | --- | --- | --- |
@@ -43,7 +43,7 @@ Auth0 extension is a webtask created in the Auth0 tenant's webtask container and
 
 ## Authorization
 
-Auth0 extensions are executed by issuing an HTTP POST request to the webtask URL from Auth0 runtime. To ensure only Auth0 runtime and/or a specific Auth0 tenant can issue such requests, the requests use a secret-based authorization mechanism. If an extension webtask has been created with `auth0-extension-secret` secret parameter, the value of that parameter MUST equal to the value of the `Authorization: Bearer {secret}` header of the HTTP POST request. To allow Auth0 runtime to add the necessary header to the webtask request it is making, the same secret value is stored in the `auth0-extension-secret` metadata property. This setup can be achieved with the following: 
+Auth0 extensions are executed by issuing an HTTP POST request to the webtask URL from the Auth0 runtime. To ensure that only the Auth0 runtime and/or a specific Auth0 tenant can issue such requests, the requests use a secret-based authorization mechanism. If an extension webtask has been created with the `auth0-extension-secret` secret parameter, the value of that parameter MUST equal to the value of the `Authorization: Bearer {secret}` header of the HTTP POST request. To allow the Auth0 runtime to add the necessary header to the webtask request it is making, the same secret value is stored in the `auth0-extension-secret` metadata property. This setup can be achieved with the following: 
 
 ```bash
 SECRET=$(openssl rand 32 -base64) && \
