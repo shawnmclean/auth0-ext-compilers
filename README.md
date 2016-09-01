@@ -8,12 +8,13 @@ To create a webtask that implements a specific extensibility point, you can use 
 
 ```bash
 cat > custom_claims.js <<EOF
-module.exports = function (ctx, cb) {
-    ctx.scope.push('foo');
-    ctx['https://example.com/foo'] = 'bar';
-    cb(null, ctx);  
-};
-EOF
+module.exports = function(client, scope, audience, context, cb) {
+  var access_token = {};
+  access_token['https://foo.com/claim'] = 'bar';  
+  access_token.scope = scope;
+  access_token.scope.push('extra');
+  cb(null, access_token);  
+};EOF
 
 SECRET=$(openssl rand 32 -base64) && \
 wt create custom_claims.js \
@@ -114,10 +115,13 @@ will be added as claims to the token being issued. All other response properties
 @param {object} client.metadata - client metadata
 @param {array|undefined} scope - array of strings representing the scope claim or undefined
 @param {string} audience - token's audience claim
+@param {object} context - additional authorization context
+@param {object} context.webtask - the raw webtask context object
 @param {function} cb - function (error, accessTokenClaims)
 */
-module.exports = function (client, scope, audience, cb) {
-  // add any namespaced claims directly to ctx
+module.exports = function (client, scope, audience, context cb) {
+  // call the callback with an error to signal authorization failure
+  // or with a mapping of claims to values (including scopes).
   cb(null, { claim: 'value' }); // return error or a mapping of access token claims
 };
 ```
