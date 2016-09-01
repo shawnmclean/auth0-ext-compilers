@@ -129,7 +129,7 @@ module.exports = function (client, scope, audience, context cb) {
 
 ### The *generic* programming model for all extensibility points
 
-A generic compiler is provided (`auth0-ext-compilers/generic`) that does not adhere to any extension-specific programming model. Instead, this compiler is a light facade on top of the 2ary and 3ary [webtask programming models](https://webtask.io/docs/model). The compiler provides authentication of the incoming webtask request and then invokes the supplied function.
+A generic compiler is provided (`auth0-ext-compilers/generic`) that does not adhere to any extension-specific programming model. Instead, this compiler is a light facade on top of the 2ary and 3ary [webtask programming models](https://webtask.io/docs/model). The compiler provides authorization of the incoming webtask request and then invokes the supplied function.
 
 #### 2ary *generic* extension
 
