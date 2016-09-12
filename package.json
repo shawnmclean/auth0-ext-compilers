@@ -16,7 +16,9 @@
       "url": "https://github.com/auth0/auth0-ext-compilers/LICENSE"
     }
   ],
-  "dependencies": {},
+  "dependencies": {
+    "boom": "^4.0.0"
+  },
   "homepage": "http://github.com/auth0/auth0-ext-compilers",
   "repository": {
     "type": "git",

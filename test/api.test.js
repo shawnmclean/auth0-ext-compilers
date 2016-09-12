@@ -358,6 +358,7 @@ describe('client-credentials-exchange', function () {
 function nodejsCompiler(script, cb) {
     var func;
     try {
+        // For brevity ;-)
         var factory = eval('(function (module) {' + script + '})');
         var m = { exports: {} };
         factory(m);
