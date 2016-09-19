@@ -88,7 +88,7 @@ describe('generic', function () {
                 headers: {}
             }, function (error, data) {
                 Assert.ok(error);
-                Assert.equal(error.statusCode, 401);
+                Assert.equal(error.status, 401);
                 Assert.equal(data, undefined);
                 done();
             });
@@ -107,7 +107,7 @@ describe('generic', function () {
                 headers: { 'authorization': 'Bearer bar' }
             }, function (error, data) {
                 Assert.ok(error);
-                Assert.equal(error.statusCode, 401);
+                Assert.equal(error.status, 401);
                 Assert.equal(data, undefined);
                 done();
             });
@@ -254,7 +254,7 @@ describe('client-credentials-exchange', function () {
                 headers: {}
             }, function (error, data) {
                 Assert.ok(error);
-                Assert.equal(error.statusCode, 400);
+                Assert.equal(error.status, 400);
                 Assert.equal(data, undefined);
                 done();
             });
@@ -272,7 +272,7 @@ describe('client-credentials-exchange', function () {
                 headers: {}
             }, function (error, data) {
                 Assert.ok(error);
-                Assert.equal(error.statusCode, 400);
+                Assert.equal(error.status, 400);
                 Assert.equal(data, undefined);
                 done();
             });
@@ -290,7 +290,7 @@ describe('client-credentials-exchange', function () {
                 headers: {}
             }, function (error, data) {
                 Assert.ok(error);
-                Assert.equal(error.statusCode, 400);
+                Assert.equal(error.status, 400);
                 Assert.equal(data, undefined);
                 done();
             });
@@ -308,7 +308,7 @@ describe('client-credentials-exchange', function () {
                 headers: {}
             }, function (error, data) {
                 Assert.ok(error);
-                Assert.equal(error.statusCode, 400);
+                Assert.equal(error.status, 400);
                 Assert.equal(data, undefined);
                 done();
             });
@@ -327,7 +327,7 @@ describe('client-credentials-exchange', function () {
                 headers: {}
             }, function (error, data) {
                 Assert.ok(error);
-                Assert.equal(error.statusCode, 401);
+                Assert.equal(error.status, 401);
                 Assert.equal(data, undefined);
                 done();
             });
@@ -346,7 +346,7 @@ describe('client-credentials-exchange', function () {
                 headers: { 'authorization': 'Bearer bar' }
             }, function (error, data) {
                 Assert.ok(error);
-                Assert.equal(error.statusCode, 401);
+                Assert.equal(error.status, 401);
                 Assert.equal(data, undefined);
                 done();
             });
@@ -385,10 +385,15 @@ function simulate(ruleFn, options, cb) {
         if (response.statusCode >= 400) {
             const error = new Error(payload.message);
 
-            error.code = payload.code;
-            error.statusCode = payload.statusCode;
-            error.stack = payload.stack;
+            error.title = payload.title;
+            error.status = payload.status;
+            error.detail = payload.detail;
 
+            for (let key in payload) {
+                if (!error[key]) {
+                    error[key] = payload[key];
+                }
+            }
             return cb(error);
         }
 
