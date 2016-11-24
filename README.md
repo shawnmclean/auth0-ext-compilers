@@ -34,7 +34,7 @@ An Auth0 extension is a webtask created in the Auth0 tenant's webtask container 
 |  Name  |  Required?  |  Value  |
 | --- | --- | --- |
 | `auth0-extension`  | Yes | Must be set to `runtime`. |
-| `auth0-extension-name` | Yes | The name of the extensibility point in Auth0. This is used by Auth0 to select the set of webtasks to run in a specific place and circumstances of Auth0 processing. Currently only the value of `client-credentials-exchange` is supported but the list will grow as we add new extension points. |
+| `auth0-extension-name` | Yes | The name of the extensibility point in Auth0. This is used by Auth0 to select the set of webtasks to run in a specific place and circumstances of Auth0 processing. [Available Extensibility Points](#extensibility-points-available) |
 | `auth0-extension-client` | No | Auth0 extension points which only wish to execute extensions configured for a particular client_id will use this value to select the webtasks that should be run. |
 | `auth0-extension-disabled` | No | If set, disables the webtask. |
 | `auth0-extension-order` | No | Webtasks selected to run for a given extension point in Auth0 will be sorted following an increasing order of this numeric metadata property. If not specified, `0` is assumed. Order of webtasks with the same value of `auth0-extension-order` is indeterministic. |
@@ -68,64 +68,9 @@ wt create {file}.js \
 
 Webtask compilers for Auth0 extension points also enforce the authorization check described in the previous section. 
 
-### The *client-credentials-exchange* extensibility point
-
-The *client-credentials-exchange* extensibility point allows custom code to modify the scopes and add custom claims to the tokens issued from the `POST /oauth/token` Auth0 API.
-
-#### Request body
-
-```javascript
-{
-  "audience": "string",
-  "client": {
-    "name": "string",
-    "id": "string",
-    "metadata": "object",
-    "tenant": "string"
-  },
-  "scope": "array of strings"
-}
-```
-
-#### Response body
-
-```javascript
-{
-  "scope": "array of strings"
-  // other properties with namespaced property names
-}
-```
-
-The `scope` property of the response as well as any other properties with names that: 
-
-* are URLs with `http` or `https` schemes
-* have hostnames other than `auth0.com`, `webtask.io`, `webtask.run`, or subordinate domain names
-
-will be added as claims to the token being issued. All other response properties are ignored. 
-
-#### Programming model
-
-**client-credentials-exchange**:
-
-```javascript
-/**
-@param {object} client - information about the client
-@param {string} client.name - name of client
-@param {string} client.id - client id
-@param {string} client.tenant - Auth0 tenant name
-@param {object} client.metadata - client metadata
-@param {array|undefined} scope - array of strings representing the scope claim or undefined
-@param {string} audience - token's audience claim
-@param {object} context - additional authorization context
-@param {object} context.webtask - the raw webtask context object
-@param {function} cb - function (error, accessTokenClaims)
-*/
-module.exports = function (client, scope, audience, context cb) {
-  // call the callback with an error to signal authorization failure
-  // or with a mapping of claims to values (including scopes).
-  cb(null, { claim: 'value' }); // return error or a mapping of access token claims
-};
-```
+### Extensibility points available
+1. [The *client-credentials-exchange* extensibility point](./client-credentials-exchange.md)
+2. [The *password-exchange* extensibility point](./password-exchange.md)
 
 ### The *generic* programming model for all extensibility points
 
