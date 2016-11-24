@@ -1,3 +1,5 @@
+/* eslint-env node, mocha */
+
 'use strict';
 
 const Assert = require('assert')
@@ -88,7 +90,7 @@ describe('generic', function () {
                 headers: {}
             }, function (error, data) {
                 Assert.ok(error);
-                Assert.equal(error.status, 401);
+                Assert.equal(error.statusCode, 500);
                 Assert.equal(data, undefined);
                 done();
             });
@@ -107,7 +109,7 @@ describe('generic', function () {
                 headers: { 'authorization': 'Bearer bar' }
             }, function (error, data) {
                 Assert.ok(error);
-                Assert.equal(error.status, 401);
+                Assert.equal(error.statusCode, 500);
                 Assert.equal(data, undefined);
                 done();
             });
@@ -254,7 +256,7 @@ describe('client-credentials-exchange', function () {
                 headers: {}
             }, function (error, data) {
                 Assert.ok(error);
-                Assert.equal(error.status, 400);
+                Assert.equal(error.statusCode, 500);
                 Assert.equal(data, undefined);
                 done();
             });
@@ -272,7 +274,7 @@ describe('client-credentials-exchange', function () {
                 headers: {}
             }, function (error, data) {
                 Assert.ok(error);
-                Assert.equal(error.status, 400);
+                Assert.equal(error.statusCode, 500);
                 Assert.equal(data, undefined);
                 done();
             });
@@ -290,7 +292,7 @@ describe('client-credentials-exchange', function () {
                 headers: {}
             }, function (error, data) {
                 Assert.ok(error);
-                Assert.equal(error.status, 400);
+                Assert.equal(error.statusCode, 500);
                 Assert.equal(data, undefined);
                 done();
             });
@@ -308,7 +310,7 @@ describe('client-credentials-exchange', function () {
                 headers: {}
             }, function (error, data) {
                 Assert.ok(error);
-                Assert.equal(error.status, 400);
+                Assert.equal(error.statusCode, 500);
                 Assert.equal(data, undefined);
                 done();
             });
@@ -327,7 +329,7 @@ describe('client-credentials-exchange', function () {
                 headers: {}
             }, function (error, data) {
                 Assert.ok(error);
-                Assert.equal(error.status, 401);
+                Assert.equal(error.statusCode, 500);
                 Assert.equal(data, undefined);
                 done();
             });
@@ -346,7 +348,7 @@ describe('client-credentials-exchange', function () {
                 headers: { 'authorization': 'Bearer bar' }
             }, function (error, data) {
                 Assert.ok(error);
-                Assert.equal(error.status, 401);
+                Assert.equal(error.statusCode, 500);
                 Assert.equal(data, undefined);
                 done();
             });
@@ -386,7 +388,7 @@ function simulate(ruleFn, options, cb) {
             const error = new Error(payload.message);
 
             error.title = payload.title;
-            error.status = payload.status;
+            error.statusCode = payload.status;
             error.detail = payload.detail;
 
             for (let key in payload) {
