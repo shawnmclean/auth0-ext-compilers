@@ -43,7 +43,32 @@ describe('generic', function () {
 
             simulate(func, {
                 body: { id: 'client' },
-                headers: {}
+                headers: {},
+                method: 'POST',
+            }, function (error, data) {
+                Assert.ifError(error);
+                Assert.ok(data);
+                Assert.equal(typeof data, 'object');
+                Assert.equal(data.id, 'client');
+                Assert.equal(data.baz, 'baz');
+                Assert.equal(Object.keys(data).length, 2);
+                done();
+            });
+        });
+    });
+
+    it('success getting, modifying, and returning body (unauthenticated, pb!=1)', function (done) {
+        compiler({
+            nodejsCompiler,
+            script: 'module.exports = function(context, cb) { context.body.baz = "baz"; cb(null, context.body); };'
+        }, function (error, func) {
+            Assert.ifError(error);
+
+            simulate(func, {
+                body: { id: 'client' },
+                headers: {},
+                method: 'POST',
+                parseBody: false,
             }, function (error, data) {
                 Assert.ifError(error);
                 Assert.ok(data);
@@ -65,7 +90,8 @@ describe('generic', function () {
             simulate(func, {
                 body: { id: 'client' },
                 secrets: { 'auth0-extension-secret': 'foo' },
-                headers: { 'authorization': 'Bearer foo' }
+                headers: { 'authorization': 'Bearer foo' },
+                method: 'POST',
             }, function (error, data) {
                 Assert.ifError(error);
                 Assert.ok(data);
@@ -87,7 +113,8 @@ describe('generic', function () {
             simulate(func, {
                 body: { id: 'client' },
                 secrets: { 'auth0-extension-secret': 'foo' },
-                headers: {}
+                headers: {},
+                method: 'POST',
             }, function (error, data) {
                 Assert.ok(error);
                 Assert.equal(error.statusCode, 500);
@@ -106,7 +133,8 @@ describe('generic', function () {
             simulate(func, {
                 body: { id: 'client' },
                 secrets: { 'auth0-extension-secret': 'foo' },
-                headers: { 'authorization': 'Bearer bar' }
+                headers: { 'authorization': 'Bearer bar' },
+                method: 'POST',
             }, function (error, data) {
                 Assert.ok(error);
                 Assert.equal(error.statusCode, 500);
@@ -143,7 +171,8 @@ describe('client-credentials-exchange', function () {
 
             simulate(func, {
                 body: { client: { id: 'client' }, audience: 'audience' },
-                headers: {}
+                headers: {},
+                method: 'POST',
             }, function (error, data) {
                 Assert.ifError(error);
                 Assert.ok(data);
@@ -168,7 +197,41 @@ describe('client-credentials-exchange', function () {
             Assert.ifError(error);
             simulate(func, {
                 body: { client: { id: 'client' }, scope: ['scope'], audience: 'audience', context: { hello: 'world', foo: 'bar' } },
-                headers: {}
+                headers: {},
+                method: 'POST',
+            }, function (error, data) {
+                Assert.ifError(error);
+                Assert.ok(data);
+                Assert.equal(typeof data, 'object');
+                Assert.equal(typeof data.client, 'object');
+                Assert.equal(data.client.id, 'client');
+                Assert.equal(data.client.baz, 'baz');
+                Assert.equal(Object.keys(data.client).length, 2);
+                Assert.ok(Array.isArray(data.scope));
+                Assert.equal(data.scope.length, 1);
+                Assert.equal(data.scope[0], 'scope');
+                Assert.equal(data.audience, 'audience');
+                Assert.equal(typeof data.context, 'object');
+                Assert.equal(data.context.hello, 'moon');
+                Assert.equal(data.context.foo, 'bar');
+                Assert.equal(Object.keys(data.context).length, 2);
+                Assert.equal(Object.keys(data).length, 4);
+                done();
+            });
+        });
+    });
+
+    it('success getting, modifying, and returning body (unauthenticated, pb!=1)', function (done) {
+        compiler({
+            nodejsCompiler,
+            script: 'module.exports = function(client, scope, audience, context, cb) { client.baz = "baz"; context.hello = "moon"; delete context.webtask; cb(null, { client, scope, audience, context }); };'
+        }, function (error, func) {
+            Assert.ifError(error);
+            simulate(func, {
+                body: { client: { id: 'client' }, scope: ['scope'], audience: 'audience', context: { hello: 'world', foo: 'bar' } },
+                headers: {},
+                method: 'POST',
+                parseBody: false,
             }, function (error, data) {
                 Assert.ifError(error);
                 Assert.ok(data);
@@ -200,7 +263,8 @@ describe('client-credentials-exchange', function () {
             simulate(func, {
                 body: { client: { id: 'client' }, scope: ['scope'], audience: 'audience', context: { hello: 'world', foo: 'bar' } },
                 secrets: { 'auth0-extension-secret': 'foo' },
-                headers: { 'authorization': 'Bearer foo' }
+                headers: { 'authorization': 'Bearer foo' },
+                method: 'POST',
             }, function (error, data) {
                 Assert.ifError(error);
                 Assert.ok(data);
@@ -231,7 +295,8 @@ describe('client-credentials-exchange', function () {
             Assert.ifError(error);
             simulate(func, {
                 body: { client: { id: 'client' }, scope: ['scope'], audience: 'audience' },
-                headers: { 'authorization': 'Bearer foo' }
+                headers: { 'authorization': 'Bearer foo' },
+                method: 'POST',
             }, function (error, data) {
                 Assert.ifError(error);
                 Assert.ok(data);
@@ -253,7 +318,8 @@ describe('client-credentials-exchange', function () {
             Assert.ifError(error);
             simulate(func, {
                 body: 'no good',
-                headers: {}
+                headers: {},
+                method: 'POST',
             }, function (error, data) {
                 Assert.ok(error);
                 Assert.equal(error.statusCode, 500);
@@ -271,7 +337,8 @@ describe('client-credentials-exchange', function () {
             Assert.ifError(error);
             simulate(func, {
                 body: { client: 'client', audience: 'audience' },
-                headers: {}
+                headers: {},
+                method: 'POST',
             }, function (error, data) {
                 Assert.ok(error);
                 Assert.equal(error.statusCode, 500);
@@ -289,7 +356,8 @@ describe('client-credentials-exchange', function () {
             Assert.ifError(error);
             simulate(func, {
                 body: { client: {}, scope: 'scope', audience: 'audience' },
-                headers: {}
+                headers: {},
+                method: 'POST',
             }, function (error, data) {
                 Assert.ok(error);
                 Assert.equal(error.statusCode, 500);
@@ -307,7 +375,8 @@ describe('client-credentials-exchange', function () {
             Assert.ifError(error);
             simulate(func, {
                 body: { client: {}, scope: 'scope', audience: [] },
-                headers: {}
+                headers: {},
+                method: 'POST',
             }, function (error, data) {
                 Assert.ok(error);
                 Assert.equal(error.statusCode, 500);
@@ -326,7 +395,8 @@ describe('client-credentials-exchange', function () {
             simulate(func, {
                 body: { client: { id: 'client' }, scope: ['scope'], audience: 'audience' },
                 secrets: { 'auth0-extension-secret': 'foo' },
-                headers: {}
+                headers: {},
+                method: 'POST',
             }, function (error, data) {
                 Assert.ok(error);
                 Assert.equal(error.statusCode, 500);
@@ -345,7 +415,8 @@ describe('client-credentials-exchange', function () {
             simulate(func, {
                 body: { client: { id: 'client' }, scope: ['scope'], audience: 'audience' },
                 secrets: { 'auth0-extension-secret': 'foo' },
-                headers: { 'authorization': 'Bearer bar' }
+                headers: { 'authorization': 'Bearer bar' },
+                method: 'POST',
             }, function (error, data) {
                 Assert.ok(error);
                 Assert.equal(error.statusCode, 500);
@@ -381,7 +452,8 @@ describe('password-exchange', function () {
 
             simulate(func, {
                 body: { user: {}, client: { id: 'client' }, audience: 'audience' },
-                headers: {}
+                headers: {},
+                method: 'POST',
             }, function (error, data) {
                 Assert.ifError(error);
                 Assert.ok(data);
@@ -406,7 +478,41 @@ describe('password-exchange', function () {
             Assert.ifError(error);
             simulate(func, {
                 body: { user: {}, client: { id: 'client' }, scope: ['scope'], audience: 'audience', context: { hello: 'world', foo: 'bar' } },
-                headers: {}
+                headers: {},
+                method: 'POST',
+            }, function (error, data) {
+                Assert.ifError(error);
+                Assert.ok(data);
+                Assert.equal(typeof data, 'object');
+                Assert.equal(typeof data.client, 'object');
+                Assert.equal(data.client.id, 'client');
+                Assert.equal(data.client.baz, 'baz');
+                Assert.equal(Object.keys(data.client).length, 2);
+                Assert.ok(Array.isArray(data.scope));
+                Assert.equal(data.scope.length, 1);
+                Assert.equal(data.scope[0], 'scope');
+                Assert.equal(data.audience, 'audience');
+                Assert.equal(typeof data.context, 'object');
+                Assert.equal(data.context.hello, 'moon');
+                Assert.equal(data.context.foo, 'bar');
+                Assert.equal(Object.keys(data.context).length, 2);
+                Assert.equal(Object.keys(data).length, 4);
+                done();
+            });
+        });
+    });
+
+    it('success getting, modifying, and returning body (unauthenticated, pb!=1)', function (done) {
+        compiler({
+            nodejsCompiler,
+            script: 'module.exports = function(user, client, scope, audience, context, cb) { client.baz = "baz"; context.hello = "moon"; delete context.webtask; cb(null, { client, scope, audience, context }); };'
+        }, function (error, func) {
+            Assert.ifError(error);
+            simulate(func, {
+                body: { user: {}, client: { id: 'client' }, scope: ['scope'], audience: 'audience', context: { hello: 'world', foo: 'bar' } },
+                headers: {},
+                method: 'POST',
+                parseBody: false,
             }, function (error, data) {
                 Assert.ifError(error);
                 Assert.ok(data);
@@ -438,7 +544,8 @@ describe('password-exchange', function () {
             simulate(func, {
                 body: { user: {}, client: { id: 'client' }, scope: ['scope'], audience: 'audience', context: { hello: 'world', foo: 'bar' } },
                 secrets: { 'auth0-extension-secret': 'foo' },
-                headers: { 'authorization': 'Bearer foo' }
+                headers: { 'authorization': 'Bearer foo' },
+                method: 'POST',
             }, function (error, data) {
                 Assert.ifError(error);
                 Assert.ok(data);
@@ -469,7 +576,8 @@ describe('password-exchange', function () {
             Assert.ifError(error);
             simulate(func, {
                 body: { user: {}, client: { id: 'client' }, scope: ['scope'], audience: 'audience' },
-                headers: { 'authorization': 'Bearer foo' }
+                headers: { 'authorization': 'Bearer foo' },
+                method: 'POST',
             }, function (error, data) {
                 Assert.ifError(error);
                 Assert.ok(data);
@@ -491,7 +599,8 @@ describe('password-exchange', function () {
             Assert.ifError(error);
             simulate(func, {
                 body: 'no good',
-                headers: {}
+                headers: {},
+                method: 'POST',
             }, function (error, data) {
                 Assert.ok(error);
                 Assert.equal(error.statusCode, 500);
@@ -510,7 +619,8 @@ describe('password-exchange', function () {
             Assert.ifError(error);
             simulate(func, {
                 body: { user: 'bad user', client: {}, audience: 'audience' },
-                headers: {}
+                headers: {},
+                method: 'POST',
             }, function (error, data) {
                 Assert.ok(error);
                 Assert.equal(error.statusCode, 500);
@@ -529,7 +639,8 @@ describe('password-exchange', function () {
             Assert.ifError(error);
             simulate(func, {
                 body: { user: {}, client: 'client', audience: 'audience' },
-                headers: {}
+                headers: {},
+                method: 'POST',
             }, function (error, data) {
                 Assert.ok(error);
                 Assert.equal(error.statusCode, 500);
@@ -548,7 +659,8 @@ describe('password-exchange', function () {
             Assert.ifError(error);
             simulate(func, {
                 body: { user: {}, client: {}, scope: 'scope', audience: 'audience' },
-                headers: {}
+                headers: {},
+                method: 'POST',
             }, function (error, data) {
                 Assert.ok(error);
                 Assert.equal(error.statusCode, 500);
@@ -567,7 +679,8 @@ describe('password-exchange', function () {
             Assert.ifError(error);
             simulate(func, {
                 body: { client: {}, scope: 'scope', audience: [] },
-                headers: {}
+                headers: {},
+                method: 'POST',
             }, function (error, data) {
                 Assert.ok(error);
                 Assert.equal(error.statusCode, 500);
@@ -587,7 +700,8 @@ describe('password-exchange', function () {
             simulate(func, {
                 body: { user: {}, client: { id: 'client' }, scope: ['scope'], audience: 'audience' },
                 secrets: { 'auth0-extension-secret': 'foo' },
-                headers: {}
+                headers: {},
+                method: 'POST',
             }, function (error, data) {
                 Assert.ok(error);
                 Assert.equal(error.statusCode, 500);
@@ -607,7 +721,8 @@ describe('password-exchange', function () {
             simulate(func, {
                 body: { user: {}, client: { id: 'client' }, scope: ['scope'], audience: 'audience' },
                 secrets: { 'auth0-extension-secret': 'foo' },
-                headers: { 'authorization': 'Bearer bar' }
+                headers: { 'authorization': 'Bearer bar' },
+                method: 'POST',
             }, function (error, data) {
                 Assert.ok(error);
                 Assert.equal(error.statusCode, 500);
@@ -637,10 +752,11 @@ function nodejsCompiler(script, cb) {
 function simulate(ruleFn, options, cb) {
     const headers = options.headers || {};
     const payload = JSON.stringify(options.body);
+    const parseBody = options.parseBody !== false;
 
     headers['Content-Type'] = 'application/json';
 
-    return Runtime.simulate(ruleFn, { headers, payload, parseBody: true, secrets: options.secrets }, mapResponse);
+    return Runtime.simulate(ruleFn, { headers, payload, method: options.method, parseBody, secrets: options.secrets }, mapResponse);
 
 
     function mapResponse(response) {
