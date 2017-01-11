@@ -66,7 +66,7 @@ will be added as claims to the token being issued. All other response properties
 @param {object} context.webtask - the raw webtask context object
 @param {function} cb - function (error, accessTokenClaims)
 */
-module.exports = function (user, client, scope, audience, context cb) {
+module.exports = function (user, client, scope, audience, context, cb) {
   // call the callback with an error to signal authorization failure
   // or with a mapping of claims to values (including scopes).
   cb(null, { claim: 'value' }); // return error or a mapping of access token claims
