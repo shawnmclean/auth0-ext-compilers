@@ -13,27 +13,27 @@ auth0-extension-name: "pre-user-registration"
 
 #### Request body
 
+
 ```javascript
 { 
   "user": { 
+    "id": "string",
     "tenant": "string",
-    "client_id": "string",
-    "connection": "string",
-    "email": "string",
+    "username": "string",
     "password": "string",
-    "request_language": "string"
+    "email": "string",
+    "emailVerified": "boolean",
+    "phoneNumber": "string",
+    "phoneNumberVerified": "boolean"
+    "user_metadata": "object",
+    "app_metadata": "object"
   },
   "context": {
+    "requestLanguage": "string",
     "connection": { 
+      "id": "string",
       "name": "string",
-       "tenant": "string",
-       "strategy": "string",
-       "status": "boolean",
-       "connection_id": "string"
-    },
-    "client": { 
-      "tenant": "string", 
-      "id": "string"
+      "tenant": "string"
     }
   }
 }
@@ -62,8 +62,7 @@ If `user_metadata` or `app_metadata` are specified in the response, they will be
 ```javascript
 /**
 @param {object} user - The user being created (see protocol)
-@param {string} context.connection - Auth0 connection (see protocol)
-@param {string} context.client - Auth0 client (see protocol)
+@param {string} context - Auth0 connection and other context info (see protocol)
 @param {function} cb - function (error, response)
 */
 module.exports = function (user, context, cb) {

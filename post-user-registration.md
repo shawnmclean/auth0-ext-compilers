@@ -14,24 +14,22 @@ auth0-extension-name: "post-user-registration"
 ```javascript
 { 
   "user": { 
+    "id": "string",
     "tenant": "string",
-    "client_id": "string",
-    "connection": "string",
+    "username": "string",
     "email": "string",
-    "password": "string",
-    "request_language": "string"
+    "emailVerified": "boolean",
+    "phoneNumber": "string",
+    "phoneNumberVerified": "boolean"
+    "user_metadata": "object",
+    "app_metadata": "object"
   },
   "context": {
+    "requestLanguage": "string",
     "connection": { 
+      "id": "string",
       "name": "string",
-       "tenant": "string",
-       "strategy": "string",
-       "status": "boolean",
-       "connection_id": "string"
-    },
-    "client": { 
-      "tenant": "string", 
-      "id": "string"
+      "tenant": "string"
     }
   }
 }
@@ -48,8 +46,7 @@ Any valid JSON object. The response is logged in Auth0 but does not affect proce
 ```javascript
 /**
 @param {object} user - The user being created (see protocol)
-@param {string} context.connection - Auth0 connection (see protocol)
-@param {string} context.client - Auth0 client (see protocol)
+@param {string} context - Auth0 connection and other context info (see protocol)
 @param {function} cb - function (error, response)
 */
 module.exports = function (user, context, cb) {
