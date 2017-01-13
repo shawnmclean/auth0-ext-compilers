@@ -38,7 +38,6 @@ An Auth0 extension is a webtask created in the Auth0 tenant's webtask container 
 | `auth0-extension-client` | No | Auth0 extension points which only wish to execute extensions configured for a particular client_id will use this value to select the webtasks that should be run. |
 | `auth0-extension-disabled` | No | If set, disables the webtask. |
 | `auth0-extension-order` | No | Webtasks selected to run for a given extension point in Auth0 will be sorted following an increasing order of this numeric metadata property. If not specified, `0` is assumed. Order of webtasks with the same value of `auth0-extension-order` is indeterministic. |
-| `auth0-extension-no-cache` | No | If set, prevents caching of webtask code at runtime. Useful during development. |
 | `auth0-extension-secret` | No | Used to authorize calls from Auth0 to Webtasks. See below. |
 
 ## Authorization
@@ -71,6 +70,8 @@ Webtask compilers for Auth0 extension points also enforce the authorization chec
 ### Extensibility points available
 1. [The *client-credentials-exchange* extensibility point](./client-credentials-exchange.md)
 2. [The *password-exchange* extensibility point](./password-exchange.md)
+3. [The *pre-user-registration* extensibility point](./pre-user-registration.md)
+3. [The *post-user-registration* extensibility point](./post-user-registration.md)
 
 ### The *generic* programming model for all extensibility points
 
