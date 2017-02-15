@@ -31,17 +31,25 @@ auth0-extension-name: "password-exchange"
 
 ```javascript
 {
-  "scope": "array of strings"
-  // other properties with namespaced property names
+  accessToken: {
+    scope: ['array', 'of', 'strings'],
+    claim1: 'value1',
+    claim2: 'value2'
+  },
+  idToken: {
+    claimA: 'valueA',
+    claimB: 'valueB'
+  }
 }
 ```
+The result object in turn contains two (optional) properties: `accessToken` for the claims corresponding to the access_token (including the `scope` property, also optional), and `idToken` for the claims corresponding to the id_token.
 
-The `scope` property of the response as well as any other properties with names that: 
+Please note that property names for custom claims (like `claim1` or `claimA` in the above example) have to conform with the following:
 
-* are URLs with `http` or `https` schemes
-* have hostnames other than `auth0.com`, `webtask.io`, `webtask.run`, or subordinate domain names
+* The name has to be properly namespaced, by using a valid URL with `http` or `https` schemes as prefix (for example `"https://example.com/someclaimname"`)
+* The hostnames of the above mentioned URL has to be other than `auth0.com`, `webtask.io`, `webtask.run`, or subordinate domain names.
 
-will be added as claims to the token being issued. All other response properties are ignored. 
+All other response properties are ignored. 
 
 #### Programming model
 
@@ -67,8 +75,18 @@ will be added as claims to the token being issued. All other response properties
 @param {function} cb - function (error, accessTokenClaims)
 */
 module.exports = function (user, client, scope, audience, context, cb) {
-  // call the callback with an error to signal authorization failure
-  // or with a mapping of claims to values (including scopes).
-  cb(null, { claim: 'value' }); // return error or a mapping of access token claims
+  var accessToken = {
+    scope: ['array', 'of', 'strings'],
+    'http://example.com/claim1': 'value1',
+    'http://example.com/claim2': 'value2'
+  };
+
+  var idToken = {
+    'http://example.com/claimA': 'valueA',
+    'http://example.com/claimB': 'valueB'
+  };
+
+  // (call the callback with an error as first argument to signal authorization failure if needed)
+  cb(null, { accessToken: accessToken, idToken: idToken });
 };
 ```
