@@ -22,7 +22,7 @@ wt create custom_claims.js \
     -p default-tjanczuk \
     --meta wt-compiler=auth0-ext-compilers/client-credentials-exchange \
     --meta auth0-extension=runtime \
-    --meta auth0-extension-name=client-credentials-exchange \
+    --meta auth0-extension-name=credentials-exchange \
     --meta auth0-extension-secret=$SECRET \
     --secret auth0-extension-secret=$SECRET
 ```
