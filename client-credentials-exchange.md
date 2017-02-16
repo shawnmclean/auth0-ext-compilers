@@ -2,7 +2,7 @@
 The *client-credentials-exchange* extensibility point allows custom code to modify the scopes and add custom claims to the tokens issued from the `POST /oauth/token` Auth0 API.
 
 ```
-auth0-extension-name: "client-credentials"
+auth0-extension-name: "credentials-exchange"
 ```
 
 #### Request body
