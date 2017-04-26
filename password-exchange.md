@@ -1,4 +1,8 @@
 
+## This extensibility point is no longer supported in Auth0
+
+This information is preserved here only for reference.
+
 The *password-exchange* extensibility point allows custom code to modify the scopes and add custom claims to the tokens issued from the `POST /oauth/token` Auth0 API using `grant_type=password`.
 
 ```
