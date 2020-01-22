@@ -234,36 +234,129 @@ describe('send-phone-message', function () {
                 });
             });
 
-            it('rejects bad client_id', function (done) {
-                compiler({
-                    nodejsCompiler,
-                    script: 'module.exports = function(recipient, text, context, cb) { cb(); };'
-                }, function (error, func) {
-                    Assert.ifError(error);
+            describe('invalid client', () => {
+                it('rejects bad client format', function (done) {
+                    compiler({
+                        nodejsCompiler,
+                        script: 'module.exports = function(recipient, text, context, cb) { cb(); };'
+                    }, function (error, func) {
+                        Assert.ifError(error);
 
-                    simulate(func, {
-                        body: { recipient: '1-999-888-657-2134', text: 'dis iz a text', context: {
-                                factor_type: 'first',
-                                message_type: 'sms',
-                                action: 'enrollment',
-                                language: 'korean',
-                                ip: '127.0.0.1',
-                                user_agent: 'someAgent',
-                                client_id: 123
-                            } },
-                        headers: {},
-                        method: 'POST',
-                    }, function (error, data) {
-                        Assert.ok(error);
-                        Assert.equal(error.statusCode, 500);
-                        Assert.equal(error.message, 'Body.context.client_id received by extensibility point is not a string');
-                        Assert.equal(data, undefined);
-                        done();
+                        simulate(func, {
+                            body: { recipient: '1-999-888-657-2134', text: 'dis iz a text', context: {
+                                    factor_type: 'first',
+                                    message_type: 'sms',
+                                    action: 'enrollment',
+                                    language: 'korean',
+                                    ip: '127.0.0.1',
+                                    user_agent: 'someAgent',
+                                    client: '123'
+                                } },
+                            headers: {},
+                            method: 'POST',
+                        }, function (error, data) {
+                            Assert.ok(error);
+                            Assert.equal(error.statusCode, 500);
+                            Assert.equal(error.message, 'Body.context.client received by extensibility point is not an object');
+                            Assert.equal(data, undefined);
+                            done();
+                        });
+                    });
+                });
+
+                it('rejects bad client_id', function (done) {
+                    compiler({
+                        nodejsCompiler,
+                        script: 'module.exports = function(recipient, text, context, cb) { cb(); };'
+                    }, function (error, func) {
+                        Assert.ifError(error);
+                        simulate(func, {
+                            body: { recipient: '1-999-888-657-2134', text: 'dis iz a text', context: {
+                                    factor_type: 'first',
+                                    message_type: 'sms',
+                                    action: 'enrollment',
+                                    language: 'korean',
+                                    ip: '127.0.0.1',
+                                    user_agent: 'someAgent',
+                                    client: {
+                                        client_id: 123
+                                    }
+                                } },
+                            headers: {},
+                            method: 'POST',
+                        }, function (error, data) {
+                            Assert.ok(error);
+                            Assert.equal(error.statusCode, 500);
+                            Assert.equal(error.message, 'Body.context.client.client_id received by extensibility point is not a string');
+                            Assert.equal(data, undefined);
+                            done();
+                        });
+                    });
+                });
+
+                it('rejects bad name', function (done) {
+                    compiler({
+                        nodejsCompiler,
+                        script: 'module.exports = function(recipient, text, context, cb) { cb(); };'
+                    }, function (error, func) {
+                        Assert.ifError(error);
+                        simulate(func, {
+                            body: { recipient: '1-999-888-657-2134', text: 'dis iz a text', context: {
+                                    factor_type: 'first',
+                                    message_type: 'sms',
+                                    action: 'enrollment',
+                                    language: 'korean',
+                                    ip: '127.0.0.1',
+                                    user_agent: 'someAgent',
+                                    client: {
+                                        client_id: 'someClientId',
+                                        name: {}
+                                    }
+                                } },
+                            headers: {},
+                            method: 'POST',
+                        }, function (error, data) {
+                            Assert.ok(error);
+                            Assert.equal(error.statusCode, 500);
+                            Assert.equal(error.message, 'Body.context.client.name received by extensibility point is not a string');
+                            Assert.equal(data, undefined);
+                            done();
+                        });
+                    });
+                });
+                it('rejects bad client_metadata', function (done) {
+                    compiler({
+                        nodejsCompiler,
+                        script: 'module.exports = function(recipient, text, context, cb) { cb(); };'
+                    }, function (error, func) {
+                        Assert.ifError(error);
+                        simulate(func, {
+                            body: { recipient: '1-999-888-657-2134', text: 'dis iz a text', context: {
+                                    factor_type: 'first',
+                                    message_type: 'sms',
+                                    action: 'enrollment',
+                                    language: 'korean',
+                                    ip: '127.0.0.1',
+                                    user_agent: 'someAgent',
+                                    client: {
+                                        client_id: 'someClientId',
+                                        name: 'Test Application',
+                                        client_metadata: 'someBadData'
+                                    }
+                                } },
+                            headers: {},
+                            method: 'POST',
+                        }, function (error, data) {
+                            Assert.ok(error);
+                            Assert.equal(error.statusCode, 500);
+                            Assert.equal(error.message, 'Body.context.client.client_metadata received by extensibility point is not an object');
+                            Assert.equal(data, undefined);
+                            done();
+                        });
                     });
                 });
             });
-
-            it('rejects bad client_id', function (done) {
+            it('rejects bad user format', function (done) {
                 compiler({
                     nodejsCompiler,
                     script: 'module.exports = function(recipient, text, context, cb) { cb(); };'
@@ -278,8 +371,12 @@ describe('send-phone-message', function () {
                                 language: 'korean',
                                 ip: '127.0.0.1',
                                 user_agent: 'someAgent',
-                                client_id: 'someId',
-                                user: 'harriet'
+                                client: {
+                                    client_id: 'someClientId',
+                                    name: 'Test Application',
+                                    client_metadata: {}
+                                },
+                                user: 'someBadUserFormat'
                             } },
                         headers: {},
                         method: 'POST',

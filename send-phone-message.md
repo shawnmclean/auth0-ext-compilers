@@ -18,8 +18,11 @@ auth0-extension-name: "send-phone-message"
       "language": "en",
       "ip": "127.0.0.1",
       "user_agent": "some agent",
-      "client_id": "1235",
-      "application_name": "Test Application",
+      "client": {
+          "client_id": "1235",
+          "name": "Test Application",
+          "client_metadata": { ... }
+      },       
       "user": {},
     }
   }
