@@ -258,6 +258,35 @@ describe('send-phone-message', function () {
                 });
             });
 
+            it('rejects bad code', function (done) {
+                compiler({
+                    nodejsCompiler,
+                    script: 'module.exports = function(recipient, text, context, cb) { cb(); };'
+                }, function (error, func) {
+                    Assert.ifError(error);
+
+                    simulate(func, {
+                        body: {
+                            recipient: '1-999-888-657-2134', text: 'dis iz a text', context: {
+                                factor_type: 'first',
+                                message_type: 'sms',
+                                action: 'enrollment',
+                                language: 'korean',
+                                code: 12345
+                            }
+                        },
+                        headers: {},
+                        method: 'POST',
+                    }, function (error, data) {
+                        Assert.ok(error);
+                        Assert.equal(error.statusCode, 500);
+                        Assert.equal(error.message, 'Body.context.code received by extensibility point is not a string');
+                        Assert.equal(data, undefined);
+                        done();
+                    });
+                });
+            });
+
             it('rejects bad ip', function (done) {
                 compiler({
                     nodejsCompiler,
@@ -272,6 +301,7 @@ describe('send-phone-message', function () {
                                 message_type: 'sms',
                                 action: 'enrollment',
                                 language: 'korean',
+                                code: 'SOMEOTP12345',
                                 ip: 127,
                             }
                         },
@@ -301,6 +331,7 @@ describe('send-phone-message', function () {
                                 message_type: 'sms',
                                 action: 'enrollment',
                                 language: 'korean',
+                                code: 'SOMEOTP12345',
                                 ip: '127.0.0.1',
                                 user_agent: {},
 
@@ -333,6 +364,7 @@ describe('send-phone-message', function () {
                                     message_type: 'sms',
                                     action: 'enrollment',
                                     language: 'korean',
+                                    code: 'SOMEOTP12345',
                                     ip: '127.0.0.1',
                                     user_agent: 'someAgent',
                                     client: '123'
@@ -363,6 +395,7 @@ describe('send-phone-message', function () {
                                     message_type: 'sms',
                                     action: 'enrollment',
                                     language: 'korean',
+                                    code: 'SOMEOTP12345',
                                     ip: '127.0.0.1',
                                     user_agent: 'someAgent',
                                     client: {
@@ -395,6 +428,7 @@ describe('send-phone-message', function () {
                                     message_type: 'sms',
                                     action: 'enrollment',
                                     language: 'korean',
+                                    code: 'SOMEOTP12345',
                                     ip: '127.0.0.1',
                                     user_agent: 'someAgent',
                                     client: {
@@ -427,6 +461,7 @@ describe('send-phone-message', function () {
                                     message_type: 'sms',
                                     action: 'enrollment',
                                     language: 'korean',
+                                    code: 'SOMEOTP12345',
                                     ip: '127.0.0.1',
                                     user_agent: 'someAgent',
                                     client: {
@@ -462,6 +497,7 @@ describe('send-phone-message', function () {
                                 message_type: 'sms',
                                 action: 'enrollment',
                                 language: 'korean',
+                                code: 'SOMEOTP12345',
                                 ip: '127.0.0.1',
                                 user_agent: 'someAgent',
                                 client: {
