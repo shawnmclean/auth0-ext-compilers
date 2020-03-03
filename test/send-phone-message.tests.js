@@ -86,50 +86,6 @@ describe('send-phone-message', function () {
                 });
             });
 
-            it('rejects bad factor_type', function (done) {
-                compiler({
-                    nodejsCompiler,
-                    script: 'module.exports = function(recipient, text, context, cb) { cb(); };'
-                }, function (error, func) {
-                    Assert.ifError(error);
-
-                    simulate(func, {
-                        body: {recipient: '1-999-888-657-2134', text: 'dis iz a text', context: {factor_type: 'wrong'}},
-                        headers: {},
-                        method: 'POST',
-                    }, function (error, data) {
-                        Assert.ok(error);
-                        Assert.equal(error.statusCode, 500);
-                        Assert.equal(error.message, 'Body.context.factor_type received by extensibility point is not `first` or `second`');
-                        Assert.equal(data, undefined);
-                        done();
-                    });
-                });
-            });
-
-            it('does not fail on `second` factor_type', function (done) {
-                compiler({
-                    nodejsCompiler,
-                    script: 'module.exports = function(recipient, text, context, cb) { cb(); };'
-                }, function (error, func) {
-                    Assert.ifError(error);
-
-                    simulate(func, {
-                        body: {
-                            recipient: '1-999-888-657-2134',
-                            text: 'dis iz a text',
-                            context: {factor_type: 'second'}
-                        },
-                        headers: {},
-                        method: 'POST',
-                    }, function (error, data) {
-                        Assert.ok(error);
-                        Assert.notEqual(error.message, 'Body.context.factor_type received by extensibility point is not `first` or `second`');
-                        done();
-                    });
-                });
-            });
-
             it('rejects bad message_type', function (done) {
                 compiler({
                     nodejsCompiler,
@@ -141,7 +97,7 @@ describe('send-phone-message', function () {
                         body: {
                             recipient: '1-999-888-657-2134',
                             text: 'dis iz a text',
-                            context: {factor_type: 'first', message_type: 'telephone'}
+                            context: {message_type: 'telephone'}
                         },
                         headers: {},
                         method: 'POST',
@@ -166,7 +122,7 @@ describe('send-phone-message', function () {
                         body: {
                             recipient: '1-999-888-657-2134',
                             text: 'dis iz a text',
-                            context: {factor_type: 'first', message_type: 'voice'}
+                            context: {message_type: 'voice'}
                         },
                         headers: {},
                         method: 'POST',
@@ -178,7 +134,7 @@ describe('send-phone-message', function () {
                 });
             });
 
-            it('does not fail on `authentication` action type', function (done) {
+            it('does not fail on `second-factor-authentication` action type', function (done) {
                 compiler({
                     nodejsCompiler,
                     script: 'module.exports = function(recipient, text, context, cb) { cb(); };'
@@ -188,16 +144,15 @@ describe('send-phone-message', function () {
                     simulate(func, {
                         body: {
                             recipient: '1-999-888-657-2134', text: 'dis iz a text', context: {
-                                factor_type: 'first',
                                 message_type: 'sms',
-                                action: 'authentication'
+                                action: 'second-factor-authentication'
                             }
                         },
                         headers: {},
                         method: 'POST',
                     }, function (error, data) {
                         Assert.ok(error);
-                        Assert.notEqual(error.message, 'Body.context.action received by extensibility point is not `enrollment` or `authentication`');
+                        Assert.notEqual(error.message, 'Body.context.action received by extensibility point is not `enrollment` or `second-factor-authentication`');
                         done();
                     });
                 });
@@ -213,7 +168,6 @@ describe('send-phone-message', function () {
                     simulate(func, {
                         body: {
                             recipient: '1-999-888-657-2134', text: 'dis iz a text', context: {
-                                factor_type: 'first',
                                 message_type: 'sms',
                                 action: 'wrong'
                             }
@@ -223,7 +177,7 @@ describe('send-phone-message', function () {
                     }, function (error, data) {
                         Assert.ok(error);
                         Assert.equal(error.statusCode, 500);
-                        Assert.equal(error.message, 'Body.context.action received by extensibility point is not `enrollment` or `authentication`');
+                        Assert.equal(error.message, 'Body.context.action received by extensibility point is not `enrollment` or `second-factor-authentication`');
                         Assert.equal(data, undefined);
                         done();
                     });
@@ -240,7 +194,6 @@ describe('send-phone-message', function () {
                     simulate(func, {
                         body: {
                             recipient: '1-999-888-657-2134', text: 'dis iz a text', context: {
-                                factor_type: 'first',
                                 message_type: 'sms',
                                 action: 'enrollment',
                                 language: {}
@@ -268,7 +221,6 @@ describe('send-phone-message', function () {
                     simulate(func, {
                         body: {
                             recipient: '1-999-888-657-2134', text: 'dis iz a text', context: {
-                                factor_type: 'first',
                                 message_type: 'sms',
                                 action: 'enrollment',
                                 language: 'korean',
@@ -297,7 +249,6 @@ describe('send-phone-message', function () {
                     simulate(func, {
                         body: {
                             recipient: '1-999-888-657-2134', text: 'dis iz a text', context: {
-                                factor_type: 'first',
                                 message_type: 'sms',
                                 action: 'enrollment',
                                 language: 'korean',
@@ -327,7 +278,6 @@ describe('send-phone-message', function () {
                     simulate(func, {
                         body: {
                             recipient: '1-999-888-657-2134', text: 'dis iz a text', context: {
-                                factor_type: 'first',
                                 message_type: 'sms',
                                 action: 'enrollment',
                                 language: 'korean',
@@ -360,7 +310,6 @@ describe('send-phone-message', function () {
                         simulate(func, {
                             body: {
                                 recipient: '1-999-888-657-2134', text: 'dis iz a text', context: {
-                                    factor_type: 'first',
                                     message_type: 'sms',
                                     action: 'enrollment',
                                     language: 'korean',
@@ -391,7 +340,6 @@ describe('send-phone-message', function () {
                         simulate(func, {
                             body: {
                                 recipient: '1-999-888-657-2134', text: 'dis iz a text', context: {
-                                    factor_type: 'first',
                                     message_type: 'sms',
                                     action: 'enrollment',
                                     language: 'korean',
@@ -424,7 +372,6 @@ describe('send-phone-message', function () {
                         simulate(func, {
                             body: {
                                 recipient: '1-999-888-657-2134', text: 'dis iz a text', context: {
-                                    factor_type: 'first',
                                     message_type: 'sms',
                                     action: 'enrollment',
                                     language: 'korean',
@@ -457,7 +404,6 @@ describe('send-phone-message', function () {
                         simulate(func, {
                             body: {
                                 recipient: '1-999-888-657-2134', text: 'dis iz a text', context: {
-                                    factor_type: 'first',
                                     message_type: 'sms',
                                     action: 'enrollment',
                                     language: 'korean',
@@ -493,7 +439,6 @@ describe('send-phone-message', function () {
                     simulate(func, {
                         body: {
                             recipient: '1-999-888-657-2134', text: 'dis iz a text', context: {
-                                factor_type: 'first',
                                 message_type: 'sms',
                                 action: 'enrollment',
                                 language: 'korean',
@@ -520,5 +465,68 @@ describe('send-phone-message', function () {
                 });
             });
         });
-    });
+    }); // invalid payload
+
+    describe('valid payload', function() {
+        it('works without client', function (done) {
+            compiler({
+                nodejsCompiler,
+                script: 'module.exports = function(recipient, text, context, cb) { cb(null, JSON.stringify({})); };'
+            }, function (error, func) {
+                Assert.ifError(error);
+
+                simulate(func, {
+                    body: {
+                        recipient: '1-999-888-657-2134', text: 'dis iz a text', context: {
+                            message_type: 'sms',
+                            action: 'enrollment',
+                            language: 'korean',
+                            code: 'SOMEOTP12345',
+                            ip: '127.0.0.1',
+                            user_agent: 'someAgent',
+                            user: {}
+                        }
+                    },
+                    headers: {},
+                    method: 'POST',
+                }, function (error, data) {
+                    Assert.equal(error, null);
+                    done();
+                });
+            });
+        });
+
+        it('works with a client', function (done) {
+            compiler({
+                nodejsCompiler,
+                script: 'module.exports = function(recipient, text, context, cb) { cb(null, JSON.stringify({})); };'
+            }, function (error, func) {
+                Assert.ifError(error);
+
+                simulate(func, {
+                    body: {
+                        recipient: '1-999-888-657-2134', text: 'dis iz a text', context: {
+                            message_type: 'sms',
+                            action: 'second-factor-authentication',
+                            language: 'korean',
+                            code: 'SOMEOTP12345',
+                            ip: '127.0.0.1',
+                            user_agent: 'someAgent',
+                            user: {},
+                            client: {
+                                client_id: 'someClientId',
+                                name: 'Test Application',
+                                client_metadata: {}
+                            }
+                        }
+                    },
+                    headers: {},
+                    method: 'POST',
+                }, function (error, data) {
+                    Assert.equal(error, null);
+                    done();
+                });
+            });
+        });
+    }); // valid payload
 });
