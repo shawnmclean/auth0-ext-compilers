@@ -528,5 +528,38 @@ describe('send-phone-message', function () {
                 });
             });
         });
+
+        it('works with a client with no client_metadata', function (done) {
+            compiler({
+                nodejsCompiler,
+                script: 'module.exports = function(recipient, text, context, cb) { cb(null, JSON.stringify({})); };'
+            }, function (error, func) {
+                Assert.ifError(error);
+
+                simulate(func, {
+                    body: {
+                        recipient: '1-999-888-657-2134', text: 'dis iz a text', context: {
+                            message_type: 'sms',
+                            action: 'second-factor-authentication',
+                            language: 'korean',
+                            code: 'SOMEOTP12345',
+                            ip: '127.0.0.1',
+                            user_agent: 'someAgent',
+                            user: {},
+                            client: {
+                                client_id: 'someClientId',
+                                name: 'Test Application',
+                                client_metadata: {}
+                            }
+                        }
+                    },
+                    headers: {},
+                    method: 'POST',
+                }, function (error, data) {
+                    Assert.equal(error, null);
+                    done();
+                });
+            });
+        });
     }); // valid payload
 });
