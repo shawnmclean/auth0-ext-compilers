@@ -34,8 +34,10 @@ describe('client-credentials-exchange', function () {
                 body: { client: { id: 'client' }, audience: 'audience' },
                 headers: {},
                 method: 'POST',
-            }, function (error, data) {
+            }, function (error, envelope) {
                 Assert.ifError(error);
+                Assert.ok(envelope);
+                const { data } = envelope;
                 Assert.ok(data);
                 Assert.equal(typeof data, 'object');
                 Assert.equal(typeof data.client, 'object');
@@ -60,8 +62,10 @@ describe('client-credentials-exchange', function () {
                 body: { client: { id: 'client' }, scope: ['scope'], audience: 'audience', context: { hello: 'world', foo: 'bar' } },
                 headers: {},
                 method: 'POST',
-            }, function (error, data) {
+            }, function (error, envelope) {
                 Assert.ifError(error);
+                Assert.ok(envelope);
+                const { data } = envelope;
                 Assert.ok(data);
                 Assert.equal(typeof data, 'object');
                 Assert.equal(typeof data.client, 'object');
@@ -93,8 +97,10 @@ describe('client-credentials-exchange', function () {
                 headers: {},
                 method: 'POST',
                 parseBody: false,
-            }, function (error, data) {
+            }, function (error, envelope) {
                 Assert.ifError(error);
+                Assert.ok(envelope);
+                const { data } = envelope;
                 Assert.ok(data);
                 Assert.equal(typeof data, 'object');
                 Assert.equal(typeof data.client, 'object');
@@ -126,8 +132,10 @@ describe('client-credentials-exchange', function () {
                 secrets: { 'auth0-extension-secret': 'foo' },
                 headers: { 'authorization': 'Bearer foo' },
                 method: 'POST',
-            }, function (error, data) {
+            }, function (error, envelope) {
                 Assert.ifError(error);
+                Assert.ok(envelope);
+                const { data } = envelope;
                 Assert.ok(data);
                 Assert.equal(typeof data, 'object');
                 Assert.equal(typeof data.client, 'object');
@@ -158,8 +166,9 @@ describe('client-credentials-exchange', function () {
                 body: { client: { id: 'client' }, scope: ['scope'], audience: 'audience' },
                 headers: { 'authorization': 'Bearer foo' },
                 method: 'POST',
-            }, function (error, data) {
+            }, function (error, envelope) {
                 Assert.ifError(error);
+                const { data } = envelope;
                 Assert.ok(data);
                 Assert.equal(typeof data, 'object');
                 Assert.equal(data.type, 'object');
@@ -282,6 +291,29 @@ describe('client-credentials-exchange', function () {
                 Assert.ok(error);
                 Assert.equal(error.statusCode, 500);
                 Assert.equal(data, undefined);
+                done();
+            });
+        });
+    });
+
+    it('transforms InvalidRequestErrors into an error payload', function (done) {
+        compiler({
+            nodejsCompiler,
+            script: 'module.exports = function(client, scope, audience, context, cb) { cb(new InvalidRequestError("bad request")); };'
+        }, function (error, func) {
+            Assert.ifError(error);
+
+            simulate(func, {
+                body: { client: { id: 'client' }, audience: 'audience' },
+                headers: {},
+                method: 'POST',
+            }, function (error, envelope) {
+                Assert.ifError(error);
+                Assert.ok(envelope);
+                const { result, data } = envelope;
+                Assert.ok(data);
+                Assert.equal(result, "oauth_error");
+                Assert.equal(data.error, "invalid_request");
                 done();
             });
         });
