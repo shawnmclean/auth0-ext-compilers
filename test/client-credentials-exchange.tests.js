@@ -296,6 +296,31 @@ describe('client-credentials-exchange', function () {
         });
     });
 
+    it('transforms vanilla Errors into an error payload', function (done) {
+        compiler({
+            nodejsCompiler,
+            script: `module.exports = function(client, scope, audience, context, cb) {
+                        cb(new Error('vanilla error'));
+                     };`
+        }, function (error, func) {
+            Assert.ifError(error);
+
+            simulate(func, {
+                body: { client: { id: 'client' }, audience: 'audience' },
+                headers: {},
+                method: 'POST',
+            }, function (error, envelope) {
+                Assert.ifError(error);
+                Assert.ok(envelope);
+                const { result, data } = envelope;
+                Assert.ok(data);
+                Assert.equal(result, 'user_error');
+                Assert.equal(data.message, 'vanilla error');
+                done();
+            });
+        });
+    });
+
     it('transforms InvalidRequestErrors into an error payload', function (done) {
         compiler({
             nodejsCompiler,
