@@ -299,7 +299,9 @@ describe('client-credentials-exchange', function () {
     it('transforms InvalidRequestErrors into an error payload', function (done) {
         compiler({
             nodejsCompiler,
-            script: 'module.exports = function(client, scope, audience, context, cb) { cb(new InvalidRequestError("bad request")); };'
+            script: `module.exports = function(client, scope, audience, context, cb) {
+                        cb(new InvalidRequestError('custom-error-code', 'bad request'));
+                     };`
         }, function (error, func) {
             Assert.ifError(error);
 
@@ -312,11 +314,66 @@ describe('client-credentials-exchange', function () {
                 Assert.ok(envelope);
                 const { result, data } = envelope;
                 Assert.ok(data);
-                Assert.equal(result, "oauth_error");
-                Assert.equal(data.error, "invalid_request");
+                Assert.equal(result, 'oauth_error');
+                Assert.equal(data.error, 'invalid_request');
+                Assert.equal(data.error_code, 'custom-error-code');
+                Assert.equal(data.error_description, 'bad request');
                 done();
             });
         });
     });
 
+    it('transforms InvalidScopeErrors into an error payload', function (done) {
+        compiler({
+            nodejsCompiler,
+            script: `module.exports = function(client, scope, audience, context, cb) {
+                        cb(new InvalidScopeError('custom-error-code', 'bad scope'));
+                     };`
+        }, function (error, func) {
+            Assert.ifError(error);
+
+            simulate(func, {
+                body: { client: { id: 'client' }, audience: 'audience' },
+                headers: {},
+                method: 'POST',
+            }, function (error, envelope) {
+                Assert.ifError(error);
+                Assert.ok(envelope);
+                const { result, data } = envelope;
+                Assert.ok(data);
+                Assert.equal(result, 'oauth_error');
+                Assert.equal(data.error, 'invalid_scope');
+                Assert.equal(data.error_code, 'custom-error-code');
+                Assert.equal(data.error_description, 'bad scope');
+                done();
+            });
+        });
+    });
+
+    it('transforms Server Error into an error payload', function (done) {
+        compiler({
+            nodejsCompiler,
+            script: `module.exports = function(client, scope, audience, context, cb) {
+                        cb(new ServerError('custom-error-code', 'server failure'));
+                     };`
+        }, function (error, func) {
+            Assert.ifError(error);
+
+            simulate(func, {
+                body: { client: { id: 'client' }, audience: 'audience' },
+                headers: {},
+                method: 'POST',
+            }, function (error, envelope) {
+                Assert.ifError(error);
+                Assert.ok(envelope);
+                const { result, data } = envelope;
+                Assert.ok(data);
+                Assert.equal(result, 'oauth_error');
+                Assert.equal(data.error, 'server_error');
+                Assert.equal(data.error_code, 'custom-error-code');
+                Assert.equal(data.error_description, 'server failure');
+                done();
+            });
+        });
+    });
 });
